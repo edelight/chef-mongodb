@@ -48,7 +48,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   if !["mongod", "shard", "configserver", "mongos"].include?(type)
-    raise "Unknown mongodb typ '#{type}'"
+    raise "Unknown mongodb type '#{type}'"
   end
   
   if type != "mongos"
