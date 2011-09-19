@@ -65,7 +65,7 @@ class Chef::ResourceDefinitionList::MongoDB
       Chef::Log.info("Started configuring the replicaset, this will take some time, another run should run smoothly")
       return
     end
-    if result.fetch("ok", nil) == 1:
+    if result.fetch("ok", nil) == 1
       # everything is fine, do nothing
     elsif result.fetch("errmsg", nil) == "already initialized"
       # check if both configs are the same
