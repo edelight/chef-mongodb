@@ -1,0 +1,45 @@
+Contents
+------------
+* README.txt
+* mongommsinstall.bat
+* mongommstinstall.ps1
+* srvany.exe
+
+Prerequisites
+------------
+* Expects a MMS/PyMongo compatible python version to be installed
+* Expects pymongo to be installed
+* If srvany.exe is not packaged then Windows NT Resource Kit should be installed and its path is read from the registry
+* Powershell script execution to be turned (this is just not for us. it is for any powershell script)
+
+Install Prerequisites
+---------------------
+* Install python 2.7 using the Windows Installer. Ensure that you use the 32 bit installer and not 64 bit.
+* Install pymongo using the Windows Installer from pypi. Ensure you pick the appropriate version. 
+http://pypi.python.org/pypi/pymongo/2.0.1
+
+Enable Powershell Script Execution
+----------------------------------
+* Open the Windows Powershell by right-clicking its icon in the Start bar and selecting Run as Administrator
+* Type `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned` and agree when prompted about changing the policy
+
+Specifying a Proxy Server
+-------------------------
+If the MMS agent needs a proxy server to connect outside, specify it in the HTTPS_Proxy environment variable
+ as http://proxyservername:port
+
+
+Sevice Installation
+-------------------
+* Unzip the contents into the same folder containing your MMS scripts such as agent.py
+* The script reads python path from windows registry if not specified on command line
+* If multiple python installations are present edit the bat file to specify the path of the python install to work
+* Run mongommsinstall.bat from an administrator command window
+* This will install the windows service and start it
+* If you stop the windows service, the agent will stop
+
+Uninstall
+------------
+- Stop the "MongoDB MMS" windows service
+- Run "sc delete mongomms"
+

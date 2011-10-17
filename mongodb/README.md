@@ -7,6 +7,7 @@ Installs and configures MongoDB, supporting:
 * Sharding
 * Replication and Sharding
 * 10gen repository package installation
+* 10gen's [MongoDB Monitoring Service (MMS)](http://www.10gen.com/mongodb-monitoring-service)
 
 # REQUIREMENTS:
 
@@ -135,6 +136,28 @@ The setup is not much different to the one described above. All you have to do i
 nodes which should be in the same replicaset have the same shard name.
 
 For more details, you can find a [tutorial for Sharding + Replication](https://github.com/edelight/cookbooks/wiki/MongoDB%3A-Replication%2BSharding) in the wiki.
+
+## MongoDB Monitoring Service
+
+Installs the [MongoDB Monitoring Service (MMS)](http://www.10gen.com/mongodb-monitoring-service) and sets it up as a service running on the node.  There is also a monit cookbook to create a monit control file to watch after the agent.
+
+#### Requirements
+
+* You will need to register with 10gen's [MongoDB Monitoring Service (MMS)](https://mms.10gen.com/user/register?c=MMS10GEN) and obtain an API Key and Secret Key
+* python
+* *This has only been tested on CentOS*
+
+#### Attributes
+
+* `node[:mms][:mms_key]` - Your MMS API Key
+* `node[:mms][:secret_key]` - Your MMS Secret Key
+* `node[:mms][:agent_home]` - The location to install the agent
+* `node[:mms][:agent_user]` - The user to run the agent
+* `node[:mms][:agent_log_dir]` - The directory for the mms_agent log
+* `node[:mms][:python_binary]` - The python binary when running the agent
+* `node[:mms][:monit][:max_memory]` - The maximum amount of memory (MB) that monit will allow before restarting the agent
+* `node[:mms][:monit][:max_cpu]` - The maximum CPU percentage that monit will allow before restarting the agent
+
 
 # LICENSE and AUTHOR:
 

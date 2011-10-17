@@ -1,0 +1,7 @@
+/var/log/mms_agent/*log {
+    missingok
+    dateext
+    compress
+    notifempty
+    delaycompress
+}
