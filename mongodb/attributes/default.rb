@@ -25,3 +25,14 @@ default[:mongodb][:port] = 27017
 default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
 default[:mongodb][:shard_name] = "default"
+
+# mms-agent
+default[:mms][:mms_key] = "MMS_API_KEY"
+default[:mms][:secret_key] = "MMS_SECRET_KEY"
+default[:mms][:agent_home] = "/usr/local/mms-agent"
+default[:mms][:agent_user] = "root"
+default[:mms][:agent_log_dir] = "/var/log/mms_agent"
+default[:mms][:python_binary] = "/usr/bin/python"
+default[:mms][:monit][:max_memory] = "128"
+default[:mms][:monit][:max_cpu] = "20"
+

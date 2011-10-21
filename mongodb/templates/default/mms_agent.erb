@@ -1,0 +1,70 @@
+#! /bin/sh
+###
+# chkconfig: 235 98 55
+# description: Manages the mms_agent chkconfig command
+# pidfile:     <%= @mms_pid_file %>
+###
+
+# #####################################
+# (C) Copyright 2011, 10gen
+#
+# You must replace the following variables with information specific to your environment:
+#
+# MMS_AGENT_HOME
+# MMS_AGENT_USER
+# MMS_AGENT_LOG_DIR
+#
+# Do NOT add a trailing slash to directories.
+#
+
+MMS_AGENT_HOME=<%= @mms_agent_home %>
+MMS_AGENT_USER=<%= @mms_agent_user %>
+MMS_AGENT_LOG_DIR=<%= @mms_agent_log_directory %>
+MMS_PID_FILE=<%= @mms_pid_file %>
+PYTHON=<%= @path_to_python %>
+
+CURRENT_PID=`pgrep -f $MMS_AGENT_HOME/agent.py`
+
+case "$1" in
+    start)
+        if [ "$CURRENT_PID" != "" ]; then
+            echo "MMS agent already running - please stop first"
+            exit 1
+        fi
+
+        echo "Starting MMS agent"
+        su $MMS_AGENT_USER -c "nohup $PYTHON $MMS_AGENT_HOME/agent.py > $MMS_AGENT_LOG_DIR/mms-agent.log 2>&1 &";
+        pgrep -f $MMS_AGENT_HOME/agent.py > $MMS_PID_FILE
+        ;;
+
+    stop)
+        if [ "$CURRENT_PID" = "" ]; then
+            rm $MMS_PID_FILE
+            echo "MMS agent is not running"
+            exit 1
+        fi
+
+        echo "Stopping MMS agent"
+        su $MMS_AGENT_USER -c "kill -9 $CURRENT_PID";
+        rm $MMS_PID_FILE
+        sleep 4;
+        ;;
+    status)
+        if [ "$CURRENT_PID" != "" ]; then
+            echo "MMS agent is running - PID $CURRENT_PID"
+            exit 0
+        else
+            echo "MMS agent is not running"
+        fi
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: /etc/init.d/mms_agent {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
