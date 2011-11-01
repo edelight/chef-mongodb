@@ -60,3 +60,8 @@ attribute "mongodb/replicaset_name",
 attribute "mongodb/enable_rest",
   :display_name => "Enable Rest",
   :description => "Enable the ReST interface of the webserver"
+
+attribute "mongodb/version_18_10gen",
+  :display_name => "Use 10gen v1.8",
+  :description => "When using the 10gen repo, use the 1.8 branch instead of the latest",
+  :default => false

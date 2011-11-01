@@ -89,6 +89,19 @@
       "description": "Enable the ReST interface of the webserver",
       "display_name": "Enable Rest"
     },
+    "mongodb/version_18_10gen": {
+      "required": "optional",
+      "calculated": false,
+      "choice": [
+
+      ],
+      "type": "string",
+      "recipes": [
+
+      ],
+      "description": "When using the 10gen repo, use the 1.8 branch instead of the latest",
+      "display_name": "Use 10gen v1.8"
+    },
     "mongodb/cluster_name": {
       "required": "optional",
       "calculated": false,
