@@ -95,6 +95,7 @@
       "choice": [
 
       ],
+      default: "false",
       "type": "string",
       "recipes": [
 
