@@ -33,6 +33,17 @@ if needs_mongo_gem
   Gem.clear_paths
 end
 
+# Create keyFile if specified
+if node[:mongodb][:key_file]
+  file "/etc/mongodb.key" do
+    owner "mongodb"
+    group "mongodb"
+    mode  "0600"
+    backup false
+    content node[:mongodb][:key_file]
+  end
+end
+
 if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
   # configure default instance
   mongodb_instance "mongodb" do
