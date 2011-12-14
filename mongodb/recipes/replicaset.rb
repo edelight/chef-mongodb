@@ -23,9 +23,9 @@ include_recipe "mongodb"
 if !node.recipes.include?("mongodb::shard")
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
-    port         node['mongodb']['port']
+    port         node['mongodb']['port'] + (node[:mongodb][:arbiter] ? 1 : 0)
     logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
+    dbpath       node['mongodb']['dbpath'] + (node[:mongodb][:arbiter] ? '/arbiter' : '')
     replicaset   node
     enable_rest  node['mongodb']['enable_rest']
   end
