@@ -20,6 +20,14 @@ DAEMON_OPTS=""
 DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
 <% end %>
 
+<% if @name == "mongodb" and node[:mongodb][:arbiter] %>
+DAEMON_OPTS="$DAEMON_OPTS --nojournal"
+<% end %>
+
+<% if node[:mongodb][:key_file] %>
+DAEMON_OPTS="$DAEMON_OPTS --keyFile /etc/mongodb.key"
+<% end %>
+
 <% if @enable_rest %>
 DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% end %>
