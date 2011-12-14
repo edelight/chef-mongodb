@@ -47,19 +47,19 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       replicaset_name = nil
     else
       # for replicated shards we autogenerate the replicaset name for each shard
-      replicaset_name = "rs_#{replicaset['mongodb']['shard_name']}"
+      replicaset_name = "rs_#{replicaset.mongodb.shard_name}"
     end
   else
     # if there is a predefined replicaset name we use it,
     # otherwise we try to generate one using 'rs_$SHARD_NAME'
     begin
-      replicaset_name = replicaset['mongodb']['replicaset_name']
+      replicaset_name = replicaset.mongodb.replicaset_name
     rescue
       replicaset_name = nil
     end
     if replicaset_name.nil?
       begin
-        replicaset_name = "rs_#{replicaset['mongodb']['shard_name']}"
+        replicaset_name = "rs_#{replicaset.mongodb.shard_name}"
       rescue
         replicaset_name = nil
       end
@@ -79,7 +79,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     daemon = "/usr/bin/mongos"
     configfile = nil
     dbpath = nil
-    configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    configserver = configserver_nodes.collect{|n| "#{n.fqdn}:#{n.mongodb.port}" }.join(",")
   end
 
   # default file
