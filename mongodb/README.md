@@ -48,6 +48,8 @@ corresponding platform. Currently only implemented for the Debian and Ubuntu rep
 Usage: just add `recipe[mongodb::10gen_repo]` to the node run_list *before* any other
 MongoDB recipe, and the mongodb-10gen **stable** packages will be installed instead of the distribution default.
 
+If `node['mongodb']['version_18_10gen']` is set to true, the 1.8.x branch will be installed from the 10gen repository.
+
 ## Single mongodb instance
 
 Simply add

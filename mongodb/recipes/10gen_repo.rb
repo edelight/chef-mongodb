@@ -40,7 +40,12 @@ when "debian", "ubuntu"
   end
 
   package "mongodb" do
-    package_name "mongodb-10gen"
+    if node['mongodb']['version_18_10gen']
+      package_name "mongodb18-10gen"
+      options "--force-yes"
+    else
+      package_name "mongodb-10gen"
+    end
   end
 else
     Chef::Log.warn("Adding the #{node['platform']} 10gen repository is not yet not supported by this cookbook")

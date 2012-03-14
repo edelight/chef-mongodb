@@ -28,3 +28,6 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
+
+# Allow using the 1.8 branch with 10gen_repo
+default[:mongodb][:version_18_10gen] = false
