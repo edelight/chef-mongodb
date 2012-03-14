@@ -28,3 +28,14 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
+
+case node['platform']
+when "freebsd"
+  default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"
+  default[:mongodb][:init_dir] = "/usr/local/etc/rc.d"
+  default[:mongodb][:root_group] = "wheel"
+else
+  default[:mongodb][:defaults_dir] = "/etc/default"
+  default[:mongodb][:init_dir] = "/etc/init.d"
+  default[:mongodb][:root_group] = "root"
+end

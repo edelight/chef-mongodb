@@ -83,10 +83,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # default file
-  template "/etc/default/#{name}" do
+  template "#{node['mongodb']['defaults_dir']}/#{name}" do
     action :create
     source "mongodb.default.erb"
-    group "root"
+    group node['mongodb']['root_group']
     owner "root"
     mode "0644"
     variables(
@@ -126,10 +126,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # init script
-  template "/etc/init.d/#{name}" do
+  template "#{node['mongodb']['init_dir']}/#{name}" do
     action :create
     source "mongodb.init.erb"
-    group "root"
+    group node['mongodb']['root_group']
     owner "root"
     mode "0755"
     variables :provides => name

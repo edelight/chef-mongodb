@@ -13,7 +13,7 @@ recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
 depends "apt"
 
-%w{ ubuntu debian }.each do |os|
+%w{ ubuntu debian freebsd }.each do |os|
   supports os
 end
 
