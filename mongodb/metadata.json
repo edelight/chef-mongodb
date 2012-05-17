@@ -13,7 +13,7 @@
       ],
       "default": {
       },
-      "type": "string",
+      "type": "hash",
       "recipes": [
 
       ],
@@ -112,7 +112,7 @@
       "default": [
 
       ],
-      "type": "string",
+      "type": "array",
       "recipes": [
 
       ],
