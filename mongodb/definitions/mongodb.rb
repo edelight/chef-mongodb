@@ -21,7 +21,7 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :enable_rest => false, \
+    :use_config_file => false, :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
     
   include_recipe "mongodb::default"
@@ -39,6 +39,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   dbpath = params[:dbpath]
   
   configfile = params[:configfile]
+  use_config_file = params[:use_config_file]
   configserver_nodes = params[:configserver]
   
   replicaset = params[:replicaset]
@@ -73,11 +74,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   if type != "mongos"
     daemon = "/usr/bin/mongod"
     configserver = nil
-    configfile = nil
-    Chef::Log.warn("We are not using a configfile, as the daemons can be configured via commandline")
+    configfile = nil unless use_config_file
   else
     daemon = "/usr/bin/mongos"
-    configfile = nil
+    configfile = nil unless use_config_file
     dbpath = nil
     configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
   end

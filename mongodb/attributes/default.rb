@@ -28,6 +28,7 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
+default[:mongodb][:use_config_file] = false
 
 case node['platform']
 when "freebsd"
