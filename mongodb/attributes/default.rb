@@ -19,6 +19,7 @@
 
 default[:mongodb][:dbpath] = "/var/lib/mongodb"
 default[:mongodb][:logpath] = "/var/log/mongodb"
+default[:mongodb][:bind_ip] = node[:ipaddress]
 default[:mongodb][:port] = 27017
 
 # cluster identifier

@@ -29,6 +29,7 @@ For examples see the USAGE section below.
 
 * `mongodb[:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
 * `mongodb[:logpath]` - Path for the logfiles, default is "/var/log/mongodb"
+* `mongodb[:bind_ip]` - IP address the mongod listens on, default is node[:ipaddress]
 * `mongodb[:port]` - Port the mongod listens on, default is 27017
 * `mongodb[:client_role]` - Role identifing all external clients which should have access to a mongod instance
 * `mongodb[:cluster_name]` - Name of the cluster, all members of the cluster must
@@ -57,7 +58,7 @@ include_recipe "mongodb::default"
 ```
   
 to your recipe. This will run the mongodb instance as configured by your distribution.
-You can change the dbpath, logpath and port settings (see ATTRIBUTES) for this node by
+You can change the dbpath, logpath, bind_ip and port settings (see ATTRIBUTES) for this node by
 using the `mongodb_instance` definition:
 
 ```ruby

@@ -6,6 +6,7 @@ NAME="<%= @name %>"
 
 DAEMON_OPTS=""
 
+<%= @bind_ip ? "DAEMON_OPTS=\"$DAEMON_OPTS --bind_ip #{@bind_ip}\"" : "" %>
 <%= @port ? "DAEMON_OPTS=\"$DAEMON_OPTS --port #{@port}\"" : "" %>
 <%= @dbpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --dbpath #{@dbpath}\"" : "" %>
 <%= @logpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --logpath #{@logpath}\"" : "" %>
