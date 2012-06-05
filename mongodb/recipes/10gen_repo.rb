@@ -43,7 +43,7 @@ when "debian", "ubuntu"
     package_name "mongodb-10gen"
   end
 
-when "centos","redhat","fedora","suse"
+when "centos","redhat","fedora"
   
   processor = node[:kernel][:machine]
   if processor != "x86_64"

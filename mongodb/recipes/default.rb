@@ -19,8 +19,18 @@
 # limitations under the License.
 #
 
-package "mongodb" do
-  action :install
+case node['platform']
+when "debian", "ubuntu"
+  package "mongodb" do
+    action :install
+  end
+when "redhat", "centos", "fedora"
+  package "mongo-10gen" do
+    action :install
+  end
+  package "mongo-10gen-server" do
+    action :install
+  end
 end
 
 needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
@@ -34,8 +44,15 @@ if needs_mongo_gem
 end
 
 if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
+  name = case platform
+         when "centos", "redhat", "fedora"
+           "mongod"
+         when "ubuntu", "debian"
+           "mongodb"
+         end
+
   # configure default instance
-  mongodb_instance "mongodb" do
+  mongodb_instance name do
     mongodb_type "mongod"
     port         node['mongodb']['port']
     logpath      node['mongodb']['logpath']

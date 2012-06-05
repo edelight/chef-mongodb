@@ -17,8 +17,17 @@
 # limitations under the License.
 #
 
-default[:mongodb][:dbpath] = "/var/lib/mongodb"
-default[:mongodb][:logpath] = "/var/log/mongodb"
+case platform
+when "centos", "redhat", "fedora"
+  default[:mongodb][:config_dir] = "/etc"
+  default[:mongodb][:dbpath] = "/var/lib/mongo"
+  default[:mongodb][:logpath] = "/var/log/mongo"
+when "ubuntu", "debian"
+  default[:mongodb][:config_dir] = "/etc/default"
+  default[:mongodb][:dbpath] = "/var/lib/mongodb"
+  default[:mongodb][:logpath] = "/var/log/mongodb"
+end
+
 default[:mongodb][:port] = 27017
 
 # roles

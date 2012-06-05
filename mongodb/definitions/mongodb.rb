@@ -64,7 +64,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # default file
-  template "/etc/default/#{name}" do
+  template "#{node['mongodb']['config_dir']}/#{name}" do
     action :create
     source "mongodb.default.erb"
     group "root"
