@@ -44,18 +44,5 @@ if needs_mongo_gem
 end
 
 if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
-  name = case platform
-         when "centos", "redhat", "fedora"
-           "mongod"
-         when "ubuntu", "debian"
-           "mongodb"
-         end
-
-  # configure default instance
-  mongodb_instance name do
-    mongodb_type "mongod"
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-  end
+  include_recipe "mongodb::standalone"
 end
