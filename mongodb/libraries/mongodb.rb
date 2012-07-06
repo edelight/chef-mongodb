@@ -44,7 +44,7 @@ class Chef::ResourceDefinitionList::MongoDB
       return
     end
     
-    members.sort!{ |x,y| x['name'] <=> y['name'] }
+    members.sort!{ |x,y| x.name <=> y.name }
     rs_members = []
     members.each_index do |n|
       port = members[n]['mongodb']['port']
