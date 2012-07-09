@@ -21,6 +21,7 @@
 
 package "mongodb" do
   action :install
+  notifies :stop, "server[mongodb]", :immediately
 end
 
 needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
