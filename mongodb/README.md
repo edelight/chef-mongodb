@@ -36,6 +36,7 @@ For examples see the USAGE section below.
     members of a cluster.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
+* `mongodb[:key_file]` - Contents of the keyFile used for internal communication between authenticated instances
 
 # USAGE:
 
