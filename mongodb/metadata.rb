@@ -2,7 +2,7 @@ maintainer        "edelight GmbH"
 maintainer_email  "markus.korn@edelight.de"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.11.1"
+version           "0.11.2"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -57,6 +57,11 @@ attribute "mongodb/replicaset_name",
   :description => "Name of a mongodb replicaset",
   :default => nil
   
+attribute "mongodb/arbiter",
+  :display_name => "Arbiter",
+  :description => "Whether this replicaset node is an arbiter",
+  :default => nil
+
 attribute "mongodb/key_file",
   :display_name => "keyFile",
   :description => "Contents of the keyFile used for internal communication between authenticated instances",

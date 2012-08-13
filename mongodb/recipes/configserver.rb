@@ -21,9 +21,13 @@
 
 include_recipe "mongodb"
 
-service "mongodb" do
-  supports :status => true, :restart => true
-  action [:disable, :stop]
+# disable and stop the default mongodb instance if we are not configured
+# as an arbiter member of a replicaset as well
+unless node.recipes.include?("mongodb::replicaset") and node[:mongodb][:arbiter]
+  service "mongodb" do
+    supports :status => true, :restart => true
+    action [:disable, :stop]
+  end
 end
 
 # we are not starting the configserver service with the --configsvr
