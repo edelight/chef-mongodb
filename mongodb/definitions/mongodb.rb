@@ -29,7 +29,14 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   type = params[:mongodb_type]
   service_action = params[:action]
   service_notifies = params[:notifies]
-  
+
+  mongo_user = case node['platform']
+               when "centos", "redhat", "fedora"
+                 "mongod"
+               when "ubuntu", "debian"
+                 "mongodb"
+               end
+
   port = params[:port]
 
   logpath = params[:logpath]
@@ -87,8 +94,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   # log dir [make sure it exists]
   directory logpath do
-    owner "mongodb"
-    group "mongodb"
+    owner mongo_user
+    group mongo_user
     mode "0755"
     action :create
   end
@@ -96,22 +103,24 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   if type != "mongos"
     # dbpath dir [make sure it exists]
     directory dbpath do
-      owner "mongodb"
-      group "mongodb"
+      owner mongo_user
+      group mongo_user
       mode "0755"
       action :create
     end
   end
   
-  # init script
-  template "/etc/init.d/#{name}" do
-    action :create
-    source "mongodb.init.erb"
-    group "root"
-    owner "root"
-    mode "0755"
-    variables :provides => name
-    notifies :restart, "service[#{name}]"
+  if %w(ubuntu debian).include?(node['platform'])
+    # init script
+    template "/etc/init.d/#{name}" do
+      action :create
+      source "mongodb.init.erb"
+      group "root"
+      owner "root"
+      mode "0755"
+      variables :provides => name
+      notifies :restart, "service[#{name}]"
+    end
   end
   
   # service
