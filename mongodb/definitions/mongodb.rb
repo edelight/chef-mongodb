@@ -23,7 +23,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
     :configserver => [], :replicaset => nil, :notifies => [] do
     
-  include_recipe "mongodb::default"
+  include_recipe "riot-mongodb::default"
   
   name = params[:name]
   type = params[:mongodb_type]
