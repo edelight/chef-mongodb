@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb::default"
+include_recipe "riot-mongodb::default"
 
 # disable and stop the default mongodb instance
 service "mongodb" do

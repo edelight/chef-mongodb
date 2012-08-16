@@ -43,6 +43,6 @@ if needs_mongo_gem
   Gem.clear_paths
 end
 
-if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
-  include_recipe "mongodb::standalone"
+if node.recipes.include?("riot-mongodb::default") or node.recipes.include?("riot-mongodb")
+  include_recipe "riot-mongodb::standalone"
 end

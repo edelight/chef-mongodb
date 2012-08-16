@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+include_recipe "riot-mongodb"
 
 service "mongodb" do
   action [:disable, :stop]
