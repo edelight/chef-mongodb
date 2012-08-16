@@ -107,8 +107,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   # log dir [make sure it exists]
   directory logpath do
-    owner "mongodb"
-    group "mongodb"
+    owner node[:mongodb][:user]
+    group node[:mongodb][:group]
     mode "0755"
     action :create
     recursive true
@@ -117,8 +117,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   if type != "mongos"
     # dbpath dir [make sure it exists]
     directory dbpath do
-      owner "mongodb"
-      group "mongodb"
+      owner node[:mongodb][:user]
+      group node[:mongodb][:group]
       mode "0755"
       action :create
       recursive true
@@ -128,7 +128,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   # init script
   template "#{node['mongodb']['init_dir']}/#{name}" do
     action :create
-    source "mongodb.init.erb"
+    source node[:mongodb][:init_script_template]
     group node['mongodb']['root_group']
     owner "root"
     mode "0755"

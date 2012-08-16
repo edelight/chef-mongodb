@@ -29,13 +29,31 @@ default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
 
+default[:mongodb][:user] = "mongodb"
+default[:mongodb][:group] = "mongodb"
+default[:mongodb][:root_group] = "root"
+
+default[:mongodb][:init_dir] = "/etc/init.d"
+
+default[:mongodb][:init_script_template] = "mongodb.init.erb"
+
 case node['platform']
 when "freebsd"
   default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"
   default[:mongodb][:init_dir] = "/usr/local/etc/rc.d"
   default[:mongodb][:root_group] = "wheel"
+  default[:mongodb][:package_name] = "mongodb"
+
+when "centos","redhat","fedora","amazon"
+  default[:mongodb][:defaults_dir] = "/etc/sysconfig"
+  default[:mongodb][:package_name] = "mongo-10gen-server"
+  default[:mongodb][:user] = "mongod"
+  default[:mongodb][:group] = "mongod"
+  default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
+
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
-  default[:mongodb][:init_dir] = "/etc/init.d"
   default[:mongodb][:root_group] = "root"
+  default[:mongodb][:package_name] = "mongodb-10gen"
+
 end

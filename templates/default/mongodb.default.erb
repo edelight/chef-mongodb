@@ -23,3 +23,8 @@ DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
 <% if @enable_rest %>
 DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% end %>
+
+<% if node.platform?("centos","redhat","fedora","amazon") -%>
+DAEMON_OPTS="$DAEMON_OPTS --fork"
+DBPATH="<%= @dbpath %>"
+<% end -%>

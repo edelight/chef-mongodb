@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-package "mongodb" do
+package node[:mongodb][:package_name] do
   action :install
 end
 

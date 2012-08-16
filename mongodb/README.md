@@ -14,9 +14,8 @@ Installs and configures MongoDB, supporting:
 
 The cookbook aims to be platform independant, but is best tested on debian squeeze systems.
 
-The `10gen_repo` recipe configures the package manager to use 10gen's
-official package reposotories on Debian, Ubuntu, Redhat, CentOS, Fedora, and
-Amazon linux distributions.
+The `10gen_repo` recipe currently supports only the Debian and Ubuntu and Fedora and CentOS 10gen repository.
+Patches for other platforms are welcome.
 
 # DEFINITIONS:
 
@@ -37,7 +36,6 @@ For examples see the USAGE section below.
     members of a cluster.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
-* `mongodb[:replicaset_name]` - Define name of replicatset
 
 # USAGE:
 
@@ -136,7 +134,7 @@ The setup is not much different to the one described above. All you have to do i
 `mongodb::replicaset` recipe to all shard nodes, and make sure that all shard
 nodes which should be in the same replicaset have the same shard name.
 
-For more details, you can find a [tutorial for Sharding + Replication](https://github.com/edelight/chef-cookbooks/wiki/MongoDB%3A-Replication%2BSharding) in the wiki.
+For more details, you can find a [tutorial for Sharding + Replication](https://github.com/edelight/cookbooks/wiki/MongoDB%3A-Replication%2BSharding) in the wiki.
 
 # LICENSE and AUTHOR:
 
