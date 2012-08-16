@@ -89,8 +89,6 @@ GEM
     thor-foodcritic (0.1.2)
       foodcritic
       thor
-    thor-scmversion (0.0.5)
-      thor
     treetop (1.4.10)
       polyglot
       polyglot (>= 0.3.1)
@@ -104,4 +102,3 @@ PLATFORMS
 DEPENDENCIES
   berkshelf (~> 0.3.0)
   thor-foodcritic (~> 0.1.2)
-  thor-scmversion (~> 0.0.3)
