@@ -26,7 +26,7 @@ case node['platform']
 when "debian", "ubuntu"
   # Adds the repo: http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages
   execute "apt-get update" do
-    action :nothing
+    command "apt-get update"
   end
 
   apt_repository "10gen" do
