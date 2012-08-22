@@ -50,6 +50,7 @@ class Chef::ResourceDefinitionList::MongoDB
     rs_members = []
     members.each_index do |n|
       port = members[n]['mongodb']['port']
+      port += 1 if members[n][:mongodb][:arbiter]
       rs_members << {"_id" => n, "host" => "#{members[n]['fqdn']}:#{port}"}
     end
 
@@ -61,6 +62,7 @@ class Chef::ResourceDefinitionList::MongoDB
     rs_member_ips = []
     members.each_index do |n|
       port = members[n]['mongodb']['port']
+      port += 1 if members[n][:mongodb][:arbiter]
       rs_member_ips << {"_id" => n, "host" => "#{members[n]['ipaddress']}:#{port}"}
     end
     
