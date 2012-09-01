@@ -25,10 +25,6 @@
 case node['platform']
 when "debian", "ubuntu"
   # Adds the repo: http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages
-  execute "apt-get update" do
-    action :nothing
-  end
-
   apt_repository "10gen" do
     uri "http://downloads-distro.mongodb.org/repo/debian-sysvinit"
     distribution "dist"
@@ -37,6 +33,10 @@ when "debian", "ubuntu"
     key "7F0CEB10"
     action :add
     notifies :run, "execute[apt-get update]", :immediately
+  end
+
+  execute "apt-get update" do
+    command "apt-get update"
   end
 
 when "centos","redhat","fedora","amazon"
