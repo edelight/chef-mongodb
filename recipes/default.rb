@@ -19,6 +19,15 @@
 # limitations under the License.
 #
 
+case node[:mongodb][:install_method]
+when '10gen'
+    include_recipe "mongodb::10gen_repo"
+when 'package'
+    node[:mongodb][:package_name] = "mongodb"
+else
+    Chef::Log.warn("Installing from #{node[:mongodb][:install_method]} is not yet supported")
+end
+
 package node[:mongodb][:package_name] do
   action :install
 end

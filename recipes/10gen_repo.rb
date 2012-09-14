@@ -39,6 +39,8 @@ when "debian", "ubuntu"
     notifies :run, "execute[apt-get update]", :immediately
   end
 
+  node[:mongodb][:package_name] = 'mongodb-10gen'
+
 when "centos","redhat","fedora","amazon"
   yum_repository "10gen" do
     description "10gen RPM Repository"
@@ -46,6 +48,13 @@ when "centos","redhat","fedora","amazon"
     action :add
   end
 
+  node[:mongodb][:package_name] = 'mongo-10gen-server'
+
 else
     Chef::Log.warn("Adding the #{node['platform']} 10gen repository is not yet not supported by this cookbook")
+    if node['platform'] == 'freebsd'
+        node[:mongodb][:package_name] = 'mongodb'
+    else
+        node[:mongodb][:package_name] = 'mongodb-10gen'
+    end
 end

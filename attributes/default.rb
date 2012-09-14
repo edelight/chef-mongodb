@@ -42,11 +42,9 @@ when "freebsd"
   default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"
   default[:mongodb][:init_dir] = "/usr/local/etc/rc.d"
   default[:mongodb][:root_group] = "wheel"
-  default[:mongodb][:package_name] = "mongodb"
 
 when "centos","redhat","fedora","amazon"
   default[:mongodb][:defaults_dir] = "/etc/sysconfig"
-  default[:mongodb][:package_name] = "mongo-10gen-server"
   default[:mongodb][:user] = "mongod"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
@@ -54,6 +52,9 @@ when "centos","redhat","fedora","amazon"
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"
-  default[:mongodb][:package_name] = "mongodb-10gen"
 
 end
+
+# packaging choice
+default[:mongodb][:install_method] = "package"
+default[:mongodb][:package_name] = "mongodb"
