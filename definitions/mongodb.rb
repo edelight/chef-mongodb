@@ -21,7 +21,8 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :notifies => [] do
+    :configserver => [], :replicaset => nil, :enable_rest => false, \
+    :notifies => [] do
     
   include_recipe "mongodb::default"
   
@@ -41,10 +42,28 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   configserver_nodes = params[:configserver]
   
   replicaset = params[:replicaset]
-  begin
-    replicaset_name = "rs_#{replicaset['mongodb']['shard_name']}" # Looks weird, but we need just some name
-  rescue
-    replicaset_name = nil
+  if type == "shard"
+    if replicaset.nil?
+      replicaset_name = nil
+    else
+      # for replicated shards we autogenerate the replicaset name for each shard
+      replicaset_name = "rs_#{replicaset['mongodb']['shard_name']}"
+    end
+  else
+    # if there is a predefined replicaset name we use it,
+    # otherwise we try to generate one using 'rs_$SHARD_NAME'
+    begin
+      replicaset_name = replicaset['mongodb']['replicaset_name']
+    rescue
+      replicaset_name = nil
+    end
+    if replicaset_name.nil?
+      begin
+        replicaset_name = "rs_#{replicaset['mongodb']['shard_name']}"
+      rescue
+        replicaset_name = nil
+      end
+    end
   end
   
   if !["mongod", "shard", "configserver", "mongos"].include?(type)
@@ -64,10 +83,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # default file
-  template "/etc/default/#{name}" do
+  template "#{node['mongodb']['defaults_dir']}/#{name}" do
     action :create
     source "mongodb.default.erb"
-    group "root"
+    group node['mongodb']['root_group']
     owner "root"
     mode "0644"
     variables(
@@ -80,37 +99,41 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "dbpath" => dbpath,
       "replicaset_name" => replicaset_name,
       "configsrv" => false, #type == "configserver", this might change the port
-      "shardsrv" => false  #type == "shard", dito.
+      "shardsrv" => false,  #type == "shard", dito.
+      "enable_rest" => params[:enable_rest]
     )
     notifies :restart, "service[#{name}]"
   end
   
   # log dir [make sure it exists]
   directory logpath do
-    owner "mongodb"
-    group "mongodb"
+    owner node[:mongodb][:user]
+    group node[:mongodb][:group]
     mode "0755"
     action :create
+    recursive true
   end
   
   if type != "mongos"
     # dbpath dir [make sure it exists]
     directory dbpath do
-      owner "mongodb"
-      group "mongodb"
+      owner node[:mongodb][:user]
+      group node[:mongodb][:group]
       mode "0755"
       action :create
+      recursive true
     end
   end
   
-  unless node[:platform] == 'ubuntu' 
-    # init script
-    cookbook_file "/etc/init.d/#{name}" do
+  # init script
+  unless node[:platform] == 'ubuntu'
+    template "#{node['mongodb']['init_dir']}/#{name}" do
       action :create
-      source "mongodb.init"
-      group "root"
+      source node[:mongodb][:init_script_template]
+      group node['mongodb']['root_group']
       owner "root"
       mode "0755"
+      variables :provides => name
       notifies :restart, "service[#{name}]"
     end
   end
@@ -131,7 +154,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       notifies :create, "ruby_block[config_replicaset]"
     end
     if type == "mongos"
-      notifies :create, "ruby_block[config_sharding]"
+      notifies :create, "ruby_block[config_sharding]", :immediately
     end
     if name == "mongodb"
       # we don't care about a running mongodb service in these cases, all we need is stopping it
