@@ -28,5 +28,6 @@ if !node.recipes.include?("mongodb::shard")
     dbpath       node['mongodb']['dbpath']
     replicaset   node
     enable_rest  node['mongodb']['enable_rest']
+    disable_journal node['mongodb']['disable_journal']
   end
 end
