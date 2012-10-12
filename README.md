@@ -111,7 +111,7 @@ mongos are actually doing the configuration of the whole sharded cluster.
 Most importantly you need to define what collections should be sharded by setting the
 attribute `mongodb[:sharded_collections]`:
 
-```javascript
+```ruby
 {
   "mongodb": {
     "sharded_collections": {
