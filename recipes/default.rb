@@ -25,6 +25,15 @@ end
 
 needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
 
+template "/etc/mongodb.conf" do
+  source "mongodb.config.erb"
+  mode 0775
+  variables(
+    :mongod_ipaddress => node[:mongodb][:ipaddress],
+    :mongod_port => node[:mongodb][:port]
+  )
+end
+
 if needs_mongo_gem
   # install the mongo ruby gem at compile time to make it globally available
   gem_package 'mongo' do
