@@ -34,6 +34,14 @@ template "/etc/mongodb.conf" do
   )
 end
 
+bash "Stopping MongoDB since the service doesn't stop correctly" do
+  code <<-BASH_SCRIPT
+  /usr/bin/mongod --shutdown --dbpath #{node[:mongodb][:dbpath]}
+  rm -f #{node[:mongodb][:dbpath]}/mongod.lock
+  BASH_SCRIPT
+end
+
+
 if needs_mongo_gem
   # install the mongo ruby gem at compile time to make it globally available
   gem_package 'mongo' do
