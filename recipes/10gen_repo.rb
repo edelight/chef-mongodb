@@ -42,7 +42,7 @@ when "debian", "ubuntu"
 when "centos","redhat","fedora","amazon"
   yum_repository "10gen" do
     description "10gen RPM Repository"
-    url "http://downloads-distro.mongodb.org/repo/redhat/os/$arch"
+    url "http://downloads-distro.mongodb.org/repo/redhat/os/#{node["kernel"]["machine"]}"
     action :add
   end
 
