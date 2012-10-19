@@ -38,7 +38,7 @@ class Chef::ResourceDefinitionList::MongoDB
     end
     
     begin
-      connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
+      connection = Mongo::Connection.new(node.ipaddress, node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
     rescue
       Chef::Log.warn("Could not connect to database: 'localhost:#{node['mongodb']['port']}'")
       return
