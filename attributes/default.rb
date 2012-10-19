@@ -51,6 +51,11 @@ when "centos","redhat","fedora","amazon"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
 
+when "ubuntu"
+  default[:mongodb][:defaults_dir] = "/etc/default"
+  default[:mongodb][:root_group] = "root"
+  default[:mongodb][:package_name] = "mongodb"
+
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"

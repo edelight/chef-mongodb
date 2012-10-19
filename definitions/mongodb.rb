@@ -126,18 +126,27 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # init script
-  template "#{node['mongodb']['init_dir']}/#{name}" do
-    action :create
-    source node[:mongodb][:init_script_template]
-    group node['mongodb']['root_group']
-    owner "root"
-    mode "0755"
-    variables :provides => name
-    notifies :restart, "service[#{name}]"
+  unless node[:platform] == 'ubuntu'
+    template "#{node['mongodb']['init_dir']}/#{name}" do
+      action :create
+      source node[:mongodb][:init_script_template]
+      group node['mongodb']['root_group']
+      owner "root"
+      mode "0755"
+      variables :provides => name
+      notifies :restart, "service[#{name}]"
+    end
   end
   
   # service
   service name do
+    if node[:platform] == "ubuntu"
+      start_command "sudo start #{name}"
+      stop_command "sudo stop #{name}"
+      restart_command "sudo restart #{name}"
+      status_command "sudo status #{name}"
+    end
+
     supports :status => true, :restart => true
     action service_action
     notifies service_notifies
