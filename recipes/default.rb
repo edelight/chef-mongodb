@@ -18,19 +18,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+%w{mongo bson_ext}.each do |pkg|
+  chef_gem pkg do
+    action :install
+  end
+end
 
 package node[:mongodb][:package_name] do
   action :install
-end
-
-needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
-
-if needs_mongo_gem
-  # install the mongo ruby gem at compile time to make it globally available
-  gem_package 'mongo' do
-    action :nothing
-  end.run_action(:install)
-  Gem.clear_paths
 end
 
 if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
