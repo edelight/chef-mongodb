@@ -101,7 +101,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "replicaset_name" => replicaset_name,
       "configsrv" => false, #type == "configserver", this might change the port
       "shardsrv" => false,  #type == "shard", dito.
-      "enable_rest" => params[:enable_rest]
+      "enable_rest" => params[:enable_rest],
+      # for moment increase mongod oplog to 20000
+      "oplogsize" => type == "mongod" ? 20000 : nil
+
     )
     notifies :restart, "service[#{name}]"
   end
