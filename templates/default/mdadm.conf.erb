@@ -1,0 +1,2 @@
+DEVICE <%= @devices.join(" ") %>
+ARRAY /dev/md0 level=<%= @level %> num-devices=<%= @devices.size %> UUID=<%= @regex.match(%x[/sbin/mdadm --misc --detail --brief /dev/md0])[3]%>

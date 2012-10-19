@@ -37,6 +37,12 @@ default[:mongodb][:init_dir] = "/etc/init.d"
 
 default[:mongodb][:init_script_template] = "mongodb.init.erb"
 
+#raid and lvm configuration
+default[:mongodb][:raid][:level] = 10
+default[:mongodb][:raid][:data_size] = "70%VG"
+default[:mongodb][:raid][:journal_size] = "10%VG"
+default[:mongodb][:raid][:log_size] = "5%VG"
+
 case node['platform']
 when "freebsd"
   default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"
