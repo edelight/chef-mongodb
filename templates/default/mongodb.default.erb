@@ -10,7 +10,7 @@ DAEMON_OPTS=""
 <%= @dbpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --dbpath #{@dbpath}\"" : "" %>
 <%= @logpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --logpath #{@logpath}\"" : "" %>
 
-<%= @oplogsize "DAEMON_OPTS=\"$DAEMON_OPTS --oplogSize #{oplogsize}\"" : "" %>
+<%= @oplogsize ? "DAEMON_OPTS=\"$DAEMON_OPTS --oplogSize #{@oplogsize}\"" : "" %>
 
 <%= @config ? "DAEMON_OPTS=\"$DAEMON_OPTS --config #{@config}\"" : "" %>
 <%= @configdb ? "DAEMON_OPTS=\"$DAEMON_OPTS --configdb #{@configdb}\"" : "" %>

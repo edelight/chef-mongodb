@@ -79,7 +79,17 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     daemon = "/usr/bin/mongos"
     configfile = nil
     dbpath = nil
-    configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    counter = 0
+    configserver_names = Array.new
+    configserver_nodes.each do |n|
+      counter += 1
+      execute "echo '#{n.ipaddress}  configserver#{counter}' >> /etc/hosts" do
+        not_if "grep '#{n.ipaddress}  configserver#{counter}' /etc/hosts"
+      end
+
+      configserver_names << "configserver#{counter}:#{n['mongodb']['port']}"
+    end
+    configserver = configserver_names.join(",")
   end
   
   # default file
@@ -111,8 +121,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   # log dir [make sure it exists]
   directory logpath do
-    owner node[:mongodb][:user]
-    group node[:mongodb][:group]
+    owner "mongod"
+    group "mongod"
     mode "0755"
     action :create
     recursive true
