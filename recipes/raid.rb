@@ -10,7 +10,7 @@ template '/etc/mdadm.conf' do
     variables( {
         :devices => drives,
         :regex => /ARRAY (.*) metadata=(.*) .*UUID=(.*)/,
-        :level => 10,
+        :level => 0,
     })
 end
 
