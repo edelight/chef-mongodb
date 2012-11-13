@@ -122,7 +122,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   # log dir [make sure it exists]
   directory logpath do
     owner node[:mongodb][:user]
-    group node[:mongodb][:group
+    group node[:mongodb][:group]
     mode "0755"
     action :create
     recursive true
