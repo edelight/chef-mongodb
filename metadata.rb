@@ -2,7 +2,7 @@ maintainer        "edelight GmbH"
 maintainer_email  "markus.korn@edelight.de"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.11"
+version           "0.12.0"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -11,7 +11,9 @@ recipe "mongodb::configserver", "Installs and configures a configserver for mong
 recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
-depends "apt"
+%w( apt aws ).each do |cookbook|
+  depends cookbook
+end
 
 %w{ ubuntu debian freebsd }.each do |os|
   supports os
@@ -60,3 +62,5 @@ attribute "mongodb/replicaset_name",
 attribute "mongodb/enable_rest",
   :display_name => "Enable Rest",
   :description => "Enable the ReST interface of the webserver"
+
+
