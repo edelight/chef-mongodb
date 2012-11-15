@@ -74,7 +74,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     daemon = "/usr/bin/mongod"
     configserver = nil
     configfile = nil
-    Chef::Log.warn("We are not using a configfile, as the daemons can be configured via commandline")
   else
     daemon = "/usr/bin/mongos"
     configfile = nil
