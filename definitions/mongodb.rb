@@ -25,6 +25,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     :notifies => [] do
     
   include_recipe "mongodb::default"
+  include_recipe "hosts::default"
   
   name = params[:name]
   type = params[:mongodb_type]
@@ -81,15 +82,19 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     dbpath = nil
     counter = 0
     configserver_names = Array.new
+    hosts_entries = Array.new
     configserver_nodes.each do |n|
       counter += 1
-      execute "echo '#{n.ipaddress}  configserver#{counter}' >> /etc/hosts" do
-        not_if "grep '#{n.ipaddress}  configserver#{counter}' /etc/hosts"
-      end
+      hosts_entries << "#{n.ipaddress}  configserver#{counter}"
 
       configserver_names << "configserver#{counter}:#{n['mongodb']['port']}"
     end
     configserver = configserver_names.join(",")
+    file "/etc/hosts.d/mongo_config_servers" do
+      mode "0644"
+      content hosts_entries.join("\n")
+      notifies :run, "execute[cat_hosts]"
+    end
   end
   
   # default file

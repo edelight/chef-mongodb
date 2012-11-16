@@ -52,7 +52,7 @@ when "freebsd"
 
 when "centos","redhat","fedora","amazon"
   default[:mongodb][:defaults_dir] = "/etc/sysconfig"
-  default[:mongodb][:package_name] = "mongo-10gen-server"
+  default[:mongodb][:package_name] = "mongo20-10gen"
   default[:mongodb][:user] = "mongod"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
