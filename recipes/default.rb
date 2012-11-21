@@ -18,6 +18,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# Install build-essential tools immediately, since they are needed to install
+# the bson-ext
+
+case platform?
+when ['debian', 'ubuntu'] 
+  package "build-essential" do
+    action :nothing
+  end.run_action(:install)
+when ['redhat','rhel','fedora','centos','amazon','scientific','suse']
+  %w{ make gcc }.each do |package_name|
+    package package_name do
+      action :nothing
+    end.run_action(:install)
+  end
+end
+
 %w{mongo bson_ext}.each do |pkg|
   chef_gem pkg do
     action :install
