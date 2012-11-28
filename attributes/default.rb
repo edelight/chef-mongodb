@@ -17,6 +17,9 @@
 # limitations under the License.
 #
 
+default[:mongodb][:user] = "mongodb"
+default[:mongodb][:group] = "mongodb"
+
 default[:mongodb][:dbpath] = "/var/lib/mongodb"
 default[:mongodb][:logpath] = "/var/log/mongodb"
 
@@ -30,6 +33,16 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
+
+default[:mongodb][:number_ebs_drives] = 4
+default[:mongodb][:ebs_size] = 125 #this is Gb size
+default[:mongodb][:raid_config] = 10
+default[:mongodb][:ebs_drive_name] = "md0"
+default[:mongodb][:ebs_volume_group_name] = "vg0"
+
+default[:mongodb][:mongodb_log] = "log"
+default[:mongodb][:mongodb_data] = "data"
+default[:mongodb][:mongodb_journal] = "journal"
 
 case node['platform']
 when "freebsd"
