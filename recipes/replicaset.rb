@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+include_recipe "mongodb::base"
 
 # if we are configuring a shard as a replicaset we do nothing in this recipe
 if !node.recipes.include?("mongodb::shard")

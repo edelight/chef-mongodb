@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb::default"
+include_recipe "mongodb::base"
 
 # disable and stop the default mongodb instance
 service "mongodb" do
