@@ -20,8 +20,10 @@
 default[:mongodb][:user] = "mongodb"
 default[:mongodb][:group] = "mongodb"
 
-default[:mongodb][:dbpath] = "/var/lib/mongodb"
-default[:mongodb][:logpath] = "/var/log/mongodb"
+default[:mongodb][:dbpath]       = "/log"
+default[:mongodb][:logpath]      = "/data"
+default[:mongodb][:journal_path] = "/journal" 
+default[:mongodb][:logappend] = true
 
 default[:mongodb][:port] = 27017
 default[:mongodb][:ipaddress] = "172.16.3.11"

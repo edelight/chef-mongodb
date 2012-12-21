@@ -29,8 +29,11 @@ template "/etc/mongodb.conf" do
   source "mongodb.config.erb"
   mode 0775
   variables(
-    :mongod_ipaddress => node[:mongodb][:ipaddress],
-    :mongod_port => node[:mongodb][:port]
+    :mongodb_db_path    => node[:mongodb][:dbpath],
+    :mongodb_log_path   => node[:mongodb][:logpath],
+    :mongodb_ipaddress  => node[:mongodb][:ipaddress],
+    :mongodb_port       => node[:mongodb][:port],
+    :mongodb_log_append => node[:mongodb][:logappend]
   )
 end
 

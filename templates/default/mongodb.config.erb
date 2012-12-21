@@ -1,15 +1,15 @@
 # mongodb.conf
 
 # Where to store the data.
-dbpath=/var/lib/mongodb
+dbpath=<%= @mongodb_db_path %>
 
 #where to log
-logpath=/var/log/mongodb/mongodb.log
+logpath=<%= @mongodb_log_path %>
 
-logappend=true
+logappend=<%= @mongodb_log_append %>
 
-bind_ip = <%= @mongod_ipaddress %>
-port = <%= @mongod_port %>
+bind_ip = <%= @mongodb_ipaddress %>
+port = <%= @mongodb_port %>
 
 # Enable journaling, http://www.mongodb.org/display/DOCS/Journaling
 journal=true

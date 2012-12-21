@@ -24,9 +24,10 @@ include_recipe "apt"
 dev_mount = "/dev"
 ext4 = "ext4"
 
-log_dir = '/' + node[:mongodb][:mongodb_log]
-data_dir = '/' + node[:mongodb][:mongodb_data]
-journal_dir = '/' + node[:mongodb][:mongodb_journal]
+log_dir     = node[:mongodb][:logpath]  #'/' + node[:mongodb][:mongodb_log]
+data_dir    = node[:mongodb][:dbpath]   #'/' + node[:mongodb][:mongodb_data]
+journal_dir = node[:mongodb][:journal_path] #'/' + node[:mongodb][:mongodb_journal]
+
 
 
 ####################  START OF THE RECIPE ##################################
