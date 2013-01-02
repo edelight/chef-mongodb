@@ -19,10 +19,10 @@
 # limitations under the License.
 #
 
-define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
-    :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :enable_rest => false, \
-    :notifies => [] do
+define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start],
+    :bind_ip => nil, :port => 27017 , :logpath => "/var/log/mongodb",
+    :dbpath => "/data", :configfile => "/etc/mongodb.conf", :configserver => [],
+    :replicaset => nil, :enable_rest => false, :notifies => [] do
     
   include_recipe "mongodb::default"
   
@@ -31,6 +31,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   service_action = params[:action]
   service_notifies = params[:notifies]
   
+  bind_ip = params[:bind_ip]
   port = params[:port]
 
   logpath = params[:logpath]
@@ -93,6 +94,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "name" => name,
       "config" => configfile,
       "configdb" => configserver,
+      "bind_ip" => bind_ip,
       "port" => port,
       "logpath" => logfile,
       "dbpath" => dbpath,
