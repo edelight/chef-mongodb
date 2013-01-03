@@ -30,7 +30,7 @@ when "debian"
   end
 
   apt_repository "10gen" do
-    uri "http://downloads-distro.mongodb.org/repo/debian-sysvinit"
+    uri "http://downloads-distro.mongodb.org/repo/#{node[:mongodb][:apt_repo]}"
     distribution "dist"
     components ["10gen"]
     keyserver "hkp://keyserver.ubuntu.com:80"
