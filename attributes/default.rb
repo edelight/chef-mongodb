@@ -19,6 +19,7 @@
 
 default[:mongodb][:dbpath] = "/var/lib/mongodb"
 default[:mongodb][:logpath] = "/var/log/mongodb"
+default[:mongodb][:bind_ip] = nil
 default[:mongodb][:port] = 27017
 
 # cluster identifier
@@ -44,7 +45,7 @@ when "freebsd"
   default[:mongodb][:root_group] = "wheel"
   default[:mongodb][:package_name] = "mongodb"
 
-when "centos","redhat","fedora","amazon"
+when "centos","redhat","fedora","amazon","scientific"
   default[:mongodb][:defaults_dir] = "/etc/sysconfig"
   default[:mongodb][:package_name] = "mongo-10gen-server"
   default[:mongodb][:user] = "mongod"
@@ -55,5 +56,6 @@ else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"
   default[:mongodb][:package_name] = "mongodb-10gen"
+  default[:mongodb][:apt_repo] = "debian-sysvinit"
 
 end

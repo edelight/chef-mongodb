@@ -37,6 +37,7 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
   # configure default instance
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
+    bind_ip      node['mongodb']['bind_ip']
     port         node['mongodb']['port']
     logpath      node['mongodb']['logpath']
     dbpath       node['mongodb']['dbpath']

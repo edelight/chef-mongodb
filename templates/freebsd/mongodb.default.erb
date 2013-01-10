@@ -3,6 +3,9 @@
 
 DAEMON_OPTS="--fork"
 
+<% if @bind_ip -%>
+DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
+<% end -%>
 <%= @port ? "DAEMON_OPTS=\"$DAEMON_OPTS --port #{@port}\"" : "" %>
 <%= @dbpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --dbpath #{@dbpath}\"" : "" %>
 <%= @logpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --logpath #{@logpath}\"" : "" %>
