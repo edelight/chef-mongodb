@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: mongodb
-# Recipe:: default
+# Recipe:: base 
 #
 # Copyright 2011, edelight GmbH
 # Authors:
@@ -19,13 +19,16 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb::base"
+package node[:mongodb][:package_name] do
+  action :install
+end
 
-# configure default instance
-mongodb_instance "mongodb" do
-  mongodb_type "mongod"
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
-  enable_rest  node['mongodb']['enable_rest']
+needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
+
+if needs_mongo_gem
+  # install the mongo ruby gem at compile time to make it globally available
+  gem_package 'mongo' do
+    action :nothing
+  end.run_action(:install)
+  Gem.clear_paths
 end
