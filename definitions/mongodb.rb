@@ -110,7 +110,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "config" => configfile,
       "configdb" => configserver,
       "port" => port,
-      "bind_ip" => type == "mongos" ? "0.0.0.0" : node.ipaddress,
+      "bind_ip" => type == "mongos" ? "0.0.0.0" : node['mongodb']['bind_ip'] or node.ipaddress,
       "logpath" => logfile,
       "dbpath" => dbpath,
       "replicaset_name" => replicaset_name,
