@@ -1,3 +1,4 @@
+name              "mongodb"
 maintainer        "edelight GmbH"
 maintainer_email  "markus.korn@edelight.de"
 license           "Apache 2.0"
