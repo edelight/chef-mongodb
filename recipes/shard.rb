@@ -19,6 +19,8 @@
 # limitations under the License.
 #
 
+node.set[:mongodb][:is_shard] = true
+
 include_recipe "mongodb::base"
 
 # disable and stop the default mongodb instance
