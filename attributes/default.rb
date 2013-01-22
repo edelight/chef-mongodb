@@ -38,6 +38,14 @@ default[:mongodb][:init_dir] = "/etc/init.d"
 
 default[:mongodb][:init_script_template] = "mongodb.init.erb"
 
+#  oplog_size 
+#
+# Specifies a maximum size in megabytes for the replication operation log (e.g. oplog.) 
+# By mongod creates an oplog based on the maximum amount of space available. 
+# For 64-bit systems, the op log is typically 5% of available disk space.
+
+default[:mongodb][:oplog_size] = nil
+
 case node['platform']
 when "freebsd"
   default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"

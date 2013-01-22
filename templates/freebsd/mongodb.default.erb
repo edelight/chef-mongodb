@@ -20,6 +20,10 @@ DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
 <% end %>
 
+<% if node[:mongodb][:oplog_size] %>
+DAEMON_OPTS="$DAEMON_OPTS --oplogSize <%= node[:mongodb][:oplog_size] %>"
+<% end %>
+
 <% if @enable_rest %>
 DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% end %>

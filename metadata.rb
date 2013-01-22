@@ -66,3 +66,8 @@ attribute "mongodb/bind_ip",
   :display_name => "Bind address",
   :description => "MongoDB instance bind address",
   :default => nil
+
+attribute "mongodb/oplog_size",
+  :display_name => "oplogSize",
+  :description => "Specifies a maximum size in megabytes for the replication operation log",
+  :default => nil
