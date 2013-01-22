@@ -29,9 +29,6 @@ service "mongodb" do
   action [:disable, :stop]
 end
 
-is_replicated = node.recipe?("mongodb::replicaset")
-
-
 # we are not starting the shard service with the --shardsvr
 # commandline option because right now this only changes the port it's
 # running on, and we are overwriting this port anyway.
@@ -40,7 +37,7 @@ mongodb_instance "shard" do
   port         node['mongodb']['port']
   logpath      node['mongodb']['logpath']
   dbpath       node['mongodb']['dbpath']
-  if is_replicated
+  if node.mongodb.is_replicaset 
     replicaset    node
   end
   enable_rest node['mongodb']['enable_rest']
