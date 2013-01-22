@@ -19,6 +19,8 @@
 # limitations under the License.
 #
 
+node.set[:mongodb][:is_configserver] = true
+
 include_recipe "mongodb::base"
 
 service "mongodb" do
