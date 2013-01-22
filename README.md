@@ -7,6 +7,7 @@ Installs and configures MongoDB, supporting:
 * Sharding
 * Replication and Sharding
 * 10gen repository package installation
+* AWS EBS volume 
 
 # REQUIREMENTS:
 
@@ -38,6 +39,11 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicatset
+* `mongodb[:ec2][:volume_size]` - Size in GB of EBS volume, default is 50
+* `mongodb[:ec2][:volume_connection]` - Name of EBS volume connection, default is sdf
+* `mongodb[:ec2][:volume_path]` - Path to mount EBS volume and DB data store,
+  default is /data/db. 
+  `recipe[mongodb::aws_ebs_volume]` Sets `mongodb[:dbpath]` same as `mongodb[:ec2][:volume_path]`
 
 # USAGE:
 
@@ -48,6 +54,14 @@ corresponding platform. Currently only implemented for the Debian and Ubuntu rep
 
 Usage: just add `recipe[mongodb::10gen_repo]` to the node run_list *before* any other
 MongoDB recipe, and the mongodb-10gen **stable** packages will be installed instead of the distribution default.
+
+## EBS Volume 
+
+Creates EBS volume and mounts it to EC2 instance for DB data storage, following 
+[Amazon Instructions](http://media.amazonwebservices.com/AWS_NoSQL_MongoDB.pdf)
+
+Usage: just add `recipe[mongodb::aws_ebs_volume]` to the node run_list *before* any other
+MongoDB recipe, except `recipe[mongodb::10gen_repo]`.
 
 ## Single mongodb instance
 
