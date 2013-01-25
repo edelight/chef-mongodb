@@ -23,25 +23,25 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
     :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
-    
+
   include_recipe "mongodb::default"
   include_recipe "hosts::default"
-  
+
   name = params[:name]
   type = params[:mongodb_type]
   service_action = params[:action]
   service_notifies = params[:notifies]
-  
+
   port = params[:port]
 
   logpath = params[:logpath]
   logfile = "#{logpath}/#{name}.log"
-  
+
   dbpath = params[:dbpath]
-  
+
   configfile = params[:configfile]
   configserver_nodes = params[:configserver]
-  
+
   replicaset = params[:replicaset]
   if type == "shard"
     if replicaset.nil?
@@ -66,11 +66,11 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       end
     end
   end
-  
+
   if !["mongod", "shard", "configserver", "mongos"].include?(type)
     raise "Unknown mongodb type '#{type}'"
   end
-  
+
   if type != "mongos"
     daemon = "/usr/bin/mongod"
     configserver = nil
@@ -96,7 +96,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       notifies :run, "execute[cat_hosts]"
     end
   end
-  
+
   # default file
   template "#{node['mongodb']['defaults_dir']}/#{name}" do
     action :create
@@ -110,7 +110,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "config" => configfile,
       "configdb" => configserver,
       "port" => port,
-      "bind_ip" => type == "mongos" ? "0.0.0.0" : node['mongodb']['bind_ip'] or node.ipaddress,
+      "bind_ip" => type == "mongos" ? "0.0.0.0" : (node['mongodb']['bind_ip'] or node.ipaddress),
       "logpath" => logfile,
       "dbpath" => dbpath,
       "replicaset_name" => replicaset_name,
@@ -123,7 +123,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     )
     notifies :restart, "service[#{name}]"
   end
-  
+
   # log dir [make sure it exists]
   directory logpath do
     owner node[:mongodb][:user]
@@ -132,7 +132,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     action :create
     recursive true
   end
-  
+
   if type != "mongos"
     # dbpath dir [make sure it exists]
     directory dbpath do
@@ -143,7 +143,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       recursive true
     end
   end
-  
+
   # init script
   template "#{node['mongodb']['init_dir']}/#{name}" do
     action :create
@@ -154,7 +154,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     variables :provides => name
     notifies :restart, "service[#{name}]"
   end
-  
+
   # service
   service name do
     supports :status => true, :restart => true
@@ -171,7 +171,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       ignore_failure true
     end
   end
-  
+
   # replicaset
   if !replicaset_name.nil?
     rs_nodes = search(
@@ -181,7 +181,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
        mongodb_shard_name:#{replicaset['mongodb']['shard_name']} AND \
        chef_environment:#{replicaset.chef_environment}"
     )
-  
+
     ruby_block "config_replicaset" do
       block do
         if not replicaset.nil?
@@ -191,19 +191,19 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       action :nothing
     end
   end
-  
+
   # sharding
   if type == "mongos"
     # add all shards
     # configure the sharded collections
-    
+
     shard_nodes = search(
       :node,
       "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
        recipes:mongodb\\:\\:shard AND \
        chef_environment:#{node.chef_environment}"
     )
-    
+
     ruby_block "config_sharding" do
       block do
         if type == "mongos"
