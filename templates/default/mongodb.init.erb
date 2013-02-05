@@ -58,8 +58,8 @@ fi
 
 . /lib/lsb/init-functions
 
-STARTTIME=1
-DIETIME=10                  # Time to wait for the server to die, in seconds
+STARTTIME=60
+DIETIME=60                  # Time to wait for the server to die, in seconds
                             # If this value is set too low you might not
                             # let some servers to die gracefully and
                             # 'restart' will not work
@@ -68,6 +68,7 @@ DAEMONUSER=${DAEMONUSER:-mongodb}
 
 # debugging
 echo "** Running $NAME ($DAEMON $DAEMON_OPTS)"
+echo "** Running $NAME ($DAEMON $DAEMON_OPTS)" >> /log/shard.log
 
 set -e
 
@@ -80,6 +81,7 @@ running_pid() {
     [ ! -d /proc/$pid ] &&  return 1
     cmd=`cat /proc/$pid/cmdline | tr "\000" "\n"|head -n 1 |cut -d : -f 1`
     # Is this the expected server
+	echo "running Pid command $cmd" >> /log/shard.log
     [ "$cmd" != "$name" ] &&  return 1
     return 0
 }
@@ -89,8 +91,10 @@ running() {
 # (works for all users)
 
     # No pidfile, probably no daemon present
+	echo "HERE IS WHAT IT THINKS IS THE PID FILE - {$PIDFILE}" >> /log/shard.log
     [ ! -f "$PIDFILE" ] && return 1
     pid=`cat $PIDFILE`
+	echo "this is the pid - {$pid}" >> /log/shard.log
     running_pid $pid $DAEMON || return 1
     return 0
 }
@@ -100,7 +104,13 @@ start_server() {
             start-stop-daemon --background --start --quiet --pidfile $PIDFILE \
                         --make-pidfile --chuid $DAEMONUSER \
                         --exec $DAEMON -- $DAEMON_OPTS
+			#echo "REMOVED DAEMON OPTIONS - init line 103" >> /log/shard.log
+                        #--exec $DAEMON
+
             errcode=$?
+
+echo "Init START SERVER - pidfile= $PIDFILE, chuid= $DAEMONUSER, exec= $DAEMON and $DAEMON_OPTS, error code=$errcode" >> /log/shard.log
+
 	return $errcode
 }
 
@@ -111,6 +121,8 @@ stop_server() {
                         --user $DAEMONUSER \
                         --exec $DAEMON
             errcode=$?
+echo "Init STOP SERVER - pidfile= $PIDFILE, exec= $DAEMON, error code=$errcode" >> /log/shard.log
+
 	return $errcode
 }
 
@@ -125,7 +137,7 @@ force_stop() {
 			kill -9 $pid
 			sleep "$DIETIME"s
 			if running ; then
-				echo "Cannot kill $NAME (pid=$pid)!"
+				echo "Cannot kill $NAME (pid=$pid)!" >> /log/shard.log
 				exit 1
 			fi
 		fi
@@ -139,6 +151,7 @@ case "$1" in
 	log_daemon_msg "Starting $DESC" "$NAME"
         # Check if it's running first
         if running ;  then
+	echo "DAEMON IS RUNNING!" >> /log/shard.log
             log_progress_msg "apparently already running"
             log_end_msg 0
             exit 0
@@ -153,10 +166,12 @@ case "$1" in
                 log_end_msg 0
             else
                 # It is not running after we did start
+		echo "DIED LINE 156!" >> /log/shard.log
                 log_end_msg 1
             fi
         else
             # Either we could not start it
+	echo "DIED LINE 160" >> /log/shard2.log
             log_end_msg 1
         fi
 	;;
@@ -164,6 +179,7 @@ case "$1" in
         log_daemon_msg "Stopping $DESC" "$NAME"
         if running ; then
             # Only stop the server if we see it running
+	echo "STOPPING LINE 170!" >> /log/shard.log
 			errcode=0
             stop_server || errcode=$?
             log_end_msg $errcode

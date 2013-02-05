@@ -63,3 +63,15 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
     enable_rest  node['mongodb']['enable_rest']
   end
 end
+
+bash "Edit sys config files" do
+  code <<-BASH_SCRIPT
+  user "root"
+  echo #{node[:mongodb][:keep_alive_time]} >> #{node[:mongodb][:keep_alive_file]}
+  echo #{node[:mongodb][:pam_limits]} >> #{node[:mongodb][:pam_limits_file]}
+  echo "*     "#{node[:mongodb][:soft_nofile]} >> #{node[:mongodb][:limits_conf]}
+  echo "*     "#{node[:mongodb][:hard_nofile]} >> #{node[:mongodb][:limits_conf]}
+  echo "*     "#{node[:mongodb][:soft_nproc]} >> #{node[:mongodb][:limits_conf]}
+  echo "*     "#{node[:mongodb][:hard_nproc]} >> #{node[:mongodb][:limits_conf]}
+  BASH_SCRIPT
+end
