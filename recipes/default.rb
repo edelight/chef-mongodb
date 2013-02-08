@@ -19,6 +19,8 @@
 # limitations under the License.
 #
 
+include_recipe "aws_ebs_disk"
+
 package "mongodb" do
   action :install
 end
@@ -35,6 +37,14 @@ template "/etc/mongodb.conf" do
     :mongodb_port       => node[:mongodb][:port],
     :mongodb_log_append => node[:mongodb][:logappend]
   )
+end
+
+template "/etc/security/limits.conf" do
+  mode "0644"
+  owner "root"
+  group "root"
+  source "limits.conf.erb"
+  variables(:limits => node[:mongodb][:ulimits])
 end
 
 bash "Stopping MongoDB since the service doesn't stop correctly" do
@@ -63,3 +73,18 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
     enable_rest  node['mongodb']['enable_rest']
   end
 end
+
+bash "Edit keep alive time" do
+  code <<-BASH_SCRIPT
+  user "root"
+  echo #{node[:mongodb][:keep_alive_time]} >> /proc/sys/net/ipv4/tcp_keepalive_time
+  BASH_SCRIPT
+end
+
+if node.recipes.include?('mongodb::shard')
+   link "/#{node[:mongodb][:mongodb_data]}/#{node[:mongodb][:mongodb_journal]}" do
+   to "/#{node[:mongodb][:mongodb_journal]}"
+   owner node[:mongodb][:user]
+   group node[:mongodb][:group]
+  end
+ end

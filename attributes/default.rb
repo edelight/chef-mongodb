@@ -1,4 +1,4 @@
-#
+
 # Cookbook Name:: mongodb
 # Attributes:: default
 #
@@ -26,25 +26,29 @@ default[:mongodb][:journal_path] = "/journal"
 default[:mongodb][:logappend] = true
 
 default[:mongodb][:port] = 27017
-default[:mongodb][:ipaddress] = "172.16.3.11"
+#default[:mongodb][:ipaddress] = "172.16.3.11"
 
 # cluster identifier
 default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
 default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
-
 default[:mongodb][:enable_rest] = false
 
-default[:mongodb][:number_ebs_drives] = 4
-default[:mongodb][:ebs_size] = 125 #this is Gb size
-default[:mongodb][:raid_config] = 10
-default[:mongodb][:ebs_drive_name] = "md0"
-default[:mongodb][:ebs_volume_group_name] = "vg0"
+#commented out 2-6-13
+#default[:mongodb][:number_ebs_drives] = 4
+#default[:mongodb][:ebs_size] = 125 #this is Gb size
+#default[:mongodb][:raid_config] = 10
+#default[:mongodb][:ebs_drive_name] = "md0"
+#default[:mongodb][:ebs_volume_group_name] = "vg0"
 
 default[:mongodb][:mongodb_log] = "log"
 default[:mongodb][:mongodb_data] = "data"
 default[:mongodb][:mongodb_journal] = "journal"
+
+default[:mongodb][:keep_alive_time] = 300
+
+default[:mongodb][:ulimits] = Array.new
 
 case node['platform']
 when "freebsd"

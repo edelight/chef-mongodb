@@ -20,7 +20,7 @@
 #
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
-    :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
+    :logpath => "/log", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
     :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
     
@@ -124,7 +124,20 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       recursive true
     end
   end
-  
+
+journal_dir = node[:mongodb][:journal_path] #'/' + node[:mongodb][:mongodb_journal]
+
+if type != "mongos"
+    # journalpath dir [make sure it exists]
+    directory journal_dir do
+      owner "mongodb"
+      group "mongodb"
+      mode "0755"
+      action :create
+      recursive true
+    end
+  end  
+
   # init script
   template "#{node['mongodb']['init_dir']}/#{name}" do
     action :create
@@ -196,5 +209,15 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       action :nothing
     end
   end
-end
 
+if %w{ ubuntu debian }.include? node.platform  
+  
+    ruby_block "uncomment_pam_limits" do
+      block do
+        f = Chef::Util::FileEdit.new('/etc/pam.d/su')
+        f.search_file_replace(/^\#\s+(session\s+required\s+pam_limits.so)/, '\1')
+        f.write_file
+      end
+    end
+  end
+end	
