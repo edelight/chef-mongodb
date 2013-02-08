@@ -35,25 +35,20 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 default[:mongodb][:enable_rest] = false
 
-default[:mongodb][:number_ebs_drives] = 4
-default[:mongodb][:ebs_size] = 125 #this is Gb size
-default[:mongodb][:raid_config] = 10
-default[:mongodb][:ebs_drive_name] = "md0"
-default[:mongodb][:ebs_volume_group_name] = "vg0"
+#commented out 2-6-13
+#default[:mongodb][:number_ebs_drives] = 4
+#default[:mongodb][:ebs_size] = 125 #this is Gb size
+#default[:mongodb][:raid_config] = 10
+#default[:mongodb][:ebs_drive_name] = "md0"
+#default[:mongodb][:ebs_volume_group_name] = "vg0"
 
 default[:mongodb][:mongodb_log] = "log"
 default[:mongodb][:mongodb_data] = "data"
 default[:mongodb][:mongodb_journal] = "journal"
 
 default[:mongodb][:keep_alive_time] = 300
-default[:mongodb][:keep_alive_file] = "/proc/sys/net/ipv4/tcp_keepalive_time" 
-default[:mongodb][:soft_nofile] = "soft    nofile	64000"
-default[:mongodb][:hard_nofile] = "hard    nofile	64000"
-default[:mongodb][:soft_nproc] = "soft    nproc	32000"
-default[:mongodb][:hard_nproc] = "hard    nproc	32000"
-default[:mongodb][:limits_conf] = "/etc/security/limits.conf"
-default[:mongodb][:pam_limits] = "session    required   pam_limits.so"
-default[:mongodb][:pam_limits_file] = "/etc/pam.d/su"
+
+default[:mongodb][:ulimits] = Array.new
 
 case node['platform']
 when "freebsd"

@@ -209,5 +209,15 @@ if type != "mongos"
       action :nothing
     end
   end
-end
-	
+
+if %w{ ubuntu debian }.include? node.platform  
+  
+    ruby_block "uncomment_pam_limits" do
+      block do
+        f = Chef::Util::FileEdit.new('/etc/pam.d/su')
+        f.search_file_replace(/^\#\s+(session\s+required\s+pam_limits.so)/, '\1')
+        f.write_file
+      end
+    end
+  end
+end	
