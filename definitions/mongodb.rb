@@ -19,10 +19,21 @@
 # limitations under the License.
 #
 
-define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start],
-    :bind_ip => nil, :port => 27017 , :logpath => "/var/log/mongodb",
-    :dbpath => "/data", :configfile => "/etc/mongodb.conf", :configserver => [],
-    :replicaset => nil, :enable_rest => false, :notifies => [] do
+define :mongodb_instance,
+    :mongodb_type => "mongod",
+    :action => [:enable, :start],
+    :bind_ip => nil,
+    :port => 27017,
+    :logpath => "/var/log/mongodb",
+    :dbpath => "/data",
+    :configfile => "/etc/mongodb.conf",
+    :configserver => [],
+    :replicaset => nil,
+    :enable_rest => false,
+    :enable_directoryperdb => false,
+    :enable_noprealloc => false,
+    :enable_smallfiles => false,
+    :notifies => [] do
     
   include_recipe "mongodb::default"
   
@@ -101,7 +112,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "replicaset_name" => replicaset_name,
       "configsrv" => false, #type == "configserver", this might change the port
       "shardsrv" => false,  #type == "shard", dito.
-      "enable_rest" => params[:enable_rest]
+      "enable_rest" => params[:enable_rest],
+      "enable_directoryperdb" => params[:enable_directoryperdb],
+      "enable_noprealloc" => params[:enable_noprealloc],
+      "enable_smallfiles" => params[:enable_smallfiles]
     )
     notifies :restart, "service[#{name}]"
   end

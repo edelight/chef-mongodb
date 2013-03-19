@@ -42,4 +42,7 @@ mongodb_instance "shard" do
     replicaset    node
   end
   enable_rest node['mongodb']['enable_rest']
+  enable_directoryperdb node['mongodb']['enable_directoryperdb']
+  enable_noprealloc node['mongodb']['enable_noprealloc']
+  enable_smallfiles node['mongodb']['enable_smallfiles']
 end

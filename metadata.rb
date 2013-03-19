@@ -67,3 +67,15 @@ attribute "mongodb/bind_ip",
   :display_name => "Bind address",
   :description => "MongoDB instance bind address",
   :default => nil
+
+attribute "mongodb/enable_directoryperdb",
+  :display_name => "Enable directory per DB",
+  :description => "Use a separate directory for the files of each database"
+
+attribute "mongodb/enable_noprealloc",
+  :display_name => "Enable noprealloc",
+  :description => "Disable data file preallocation"
+
+attribute "mongodb/enable_smallfiles",
+  :display_name => "Enable smallfiles",
+  :description => "Use a smaller initial file size and maximum size"

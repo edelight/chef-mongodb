@@ -24,4 +24,16 @@ DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
 DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% end %>
 
+<% if @enable_directoryperdb %>
+DAEMON_OPTS="$DAEMON_OPTS --directoryperdb"
+<% end %>
+
+<% if @enable_noprealloc %>
+DAEMON_OPTS="$DAEMON_OPTS --noprealloc"
+<% end %>
+
+<% if @enable_smallfiles %>
+DAEMON_OPTS="$DAEMON_OPTS --smallfiles"
+<% end %>
+
 <%= @name %>_command_args="$DAEMON_OPTS"

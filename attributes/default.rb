@@ -29,6 +29,9 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
 default[:mongodb][:enable_rest] = false
+default[:mongodb][:enable_directoryperdb] = false
+default[:mongodb][:enable_noprealloc] = false
+default[:mongodb][:enable_smallfiles] = false
 
 default[:mongodb][:user] = "mongodb"
 default[:mongodb][:group] = "mongodb"
