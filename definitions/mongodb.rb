@@ -93,7 +93,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     file "/etc/hosts.d/mongo_config_servers" do
       mode "0644"
 
-      content "#{hosts_entries.join("\n")}\n"
+      content "#{hosts_entries.join("\n")}\n\n\n"
       notifies :run, "execute[cat_hosts]"
     end
   end
