@@ -4,6 +4,8 @@
 DAEMON="<%= @daemon_path %>"
 NAME="<%= @name %>"
 
+<%#
+
 DAEMON_OPTS=""
 
 <%= @port ? "DAEMON_OPTS=\"$DAEMON_OPTS --port #{@port}\"" : "" %>
@@ -23,3 +25,5 @@ DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
 <% if @enable_rest %>
 DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% end %>
+
+%>

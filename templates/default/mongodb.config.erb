@@ -1,15 +1,26 @@
 # mongodb.conf
 
+
+<%= @configsrv ? "configsvr = true" : "" %>
+<%= @configdb ? "configdb = #{@configdb}" : "" %>
+<%= @shardsrv ? "shardsvr = true" : "" %>
+
+<%= @replicaset_name ? "replSet = #{@replicaset_name}" : "" %>
+
+<%= @enable_rest ? "rest = true" : "" %>
+
 # Where to store the data.
-dbpath=<%= @mongodb_db_path %>
+dbpath=<%= @dbpath ? "#{@dbpath}" : "" %>
 
 #where to log
-logpath=<%= @mongodb_log_path %>
+# logpath=
+# logappend=
 
-logappend=<%= @mongodb_log_append %>
+syslog = true
 
-bind_ip = <%= @mongodb_ipaddress %>
-port = <%= @mongodb_port %>
+bind_ip = <%= @mongodb_ipaddress ? "#{@mongodb_ipaddress}" : "" %>
+
+port = <%= @port ? "#{@port}" : "27017" %>
 
 # Enable journaling, http://www.mongodb.org/display/DOCS/Journaling
 journal=true
