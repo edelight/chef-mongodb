@@ -51,7 +51,7 @@ template "/etc/init/mongodb.conf" do
   mode 0644
   variables(
     :dbpath    => node[:mongodb][:dbpath],
-    :logpath   => node[:mongodb][:logpath],
+    :logpath   => node[:mongodb][:logpath]
   )
 end
 
