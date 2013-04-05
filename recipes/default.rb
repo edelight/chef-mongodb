@@ -27,13 +27,31 @@ needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.
 
 template "/etc/mongodb.conf" do
   source "mongodb.config.erb"
-  mode 0775
+  group node['mongodb']['root_group']
+  owner "root"
+  mode 0644
   variables(
-    :mongodb_db_path    => node[:mongodb][:dbpath],
-    :mongodb_log_path   => node[:mongodb][:logpath],
-    :mongodb_ipaddress  => node[:mongodb][:ipaddress],
-    :mongodb_port       => node[:mongodb][:port],
-    :mongodb_log_append => node[:mongodb][:logappend]
+    :dbpath    => node[:mongodb][:dbpath],
+    :logpath   => node[:mongodb][:logpath],
+    :ipaddress  => node[:mongodb][:ipaddress],
+    :port       => node[:mongodb][:port],
+    :logappend => node[:mongodb][:logappend],
+    :configdb => node[:mongodb][:configserver],
+    :replicaset_name => node[:mongodb][:replicaset_name],
+    :configsrv => node[:mongodb][:configsrv],
+    :shardsrv => node[:mongodb][:shardsrv],
+    :enable_rest => node[:mongodb][:enable_rest]
+  )
+end
+
+template "/etc/init/mongodb.conf" do
+  source "mongodb.upstart.erb"
+  group node['mongodb']['root_group']
+  owner "root"
+  mode 0644
+  variables(
+    :dbpath    => node[:mongodb][:dbpath],
+    :logpath   => node[:mongodb][:logpath],
   )
 end
 
