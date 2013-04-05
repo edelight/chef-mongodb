@@ -82,3 +82,9 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
     enable_rest  node['mongodb']['enable_rest']
   end
 end
+
+bash "Replacing /etc/init.d/mongodb with upstart-job hook" do
+  code <<-BASH_SCRIPT
+  rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job /etc/init.d/mongodb
+  BASH_SCRIPT
+end

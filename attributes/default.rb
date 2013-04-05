@@ -20,8 +20,8 @@
 default[:mongodb][:user] = "mongodb"
 default[:mongodb][:group] = "mongodb"
 
-default[:mongodb][:dbpath]       = "/log"
-default[:mongodb][:logpath]      = "/data"
+default[:mongodb][:dbpath]       = "/data/mongodb"
+default[:mongodb][:logpath]      = "/log/mongodb"
 default[:mongodb][:journal_path] = "/journal" 
 default[:mongodb][:logappend] = true
 

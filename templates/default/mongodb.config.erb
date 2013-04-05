@@ -1,20 +1,17 @@
 # mongodb.conf
 
-
-<%= @configsrv ? "configsvr = true" : "" %>
-<%= @configdb ? "configdb = #{@configdb}" : "" %>
-<%= @shardsrv ? "shardsvr = true" : "" %>
-
-<%= @replicaset_name ? "replSet = #{@replicaset_name}" : "" %>
-
-<%= @enable_rest ? "rest = true" : "" %>
+<%= @configsrv ? "configsvr = true" : "# configsvr = false" %>
+<%= @configdb ? "configdb = #{@configdb}" : "# configdb =" %>
+<%= @shardsrv ? "shardsvr = true" : "# shardsvr = false" %>
+<%= @replicaset_name ? "replSet = #{@replicaset_name}" : "# replSet = <replica-set-name>" %>
+<%= @enable_rest ? "rest = true" : "# rest = false" %>
 
 # Where to store the data.
-dbpath=<%= @dbpath ? "#{@dbpath}" : "" %>
+dbpath = <%= @dbpath ? "#{@dbpath}" : "" %>
 
 #where to log
-# logpath=
-# logappend=
+# logpath =
+# logappend =
 
 syslog = true
 
