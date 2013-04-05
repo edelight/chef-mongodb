@@ -59,6 +59,7 @@ bash "Stopping MongoDB since the service doesn't stop correctly" do
   code <<-BASH_SCRIPT
   /usr/bin/mongod --shutdown --dbpath #{node[:mongodb][:dbpath]}
   rm -f #{node[:mongodb][:dbpath]}/mongod.lock
+  rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job /etc/init.d/mongodb
   BASH_SCRIPT
 end
 
