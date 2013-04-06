@@ -14,4 +14,4 @@ stop on runlevel [06]
 
 setuid mongodb
 
-exec /usr/bin/mongod --config /etc/mongodb.conf
+exec <%= @daemon ? "#{@daemon}" : "/usr/bin/mongod" %> --config /etc/mongodb.conf

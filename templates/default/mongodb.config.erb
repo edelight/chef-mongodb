@@ -1,21 +1,21 @@
 # mongodb.conf
 
-<%= @configsrv ? "configsvr = true" : "# configsvr = false" %>
+<%= @configsvr ? "configsvr = true" : "# configsvr = false" %>
 <%= @configdb ? "configdb = #{@configdb}" : "# configdb =" %>
-<%= @shardsrv ? "shardsvr = true" : "# shardsvr = false" %>
+<%= @shardsvr ? "shardsvr = true" : "# shardsvr = false" %>
 <%= @replicaset_name ? "replSet = #{@replicaset_name}" : "# replSet = <replica-set-name>" %>
 <%= @enable_rest ? "rest = true" : "# rest = false" %>
 
 # Where to store the data.
 dbpath = <%= @dbpath ? "#{@dbpath}" : "" %>
 
-#where to log
+#where to log (using syslog)
 # logpath =
-# logappend =
+# logappend = true
 
 syslog = true
 
-# bind_ip = <%= @ipaddress ? "#{@ipaddress}" : "" %>
+# bind_ip = 127.0.0.1
 
 port = <%= @port ? "#{@port}" : "27017" %>
 

@@ -21,7 +21,7 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :enable_rest => false, \
+    :configserver => [], :replicaset => nil, :enable_rest => false, :upstartfile => "/etc/init/mongodb.conf", \
     :notifies => [] do
     
   include_recipe "mongodb::default"
@@ -37,9 +37,13 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   logfile = "#{logpath}/#{name}.log"
   
   dbpath = params[:dbpath]
+
+  upstartfile = params[:upstartfile]
   
   configfile = params[:configfile]
   configserver_nodes = params[:configserver]
+
+  enable_rest = params[:enable_rest]
   
   replicaset = params[:replicaset]
   if type == "shard"
@@ -73,36 +77,18 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   if type != "mongos"
     daemon = "/usr/bin/mongod"
     configserver = nil
-    configfile = nil
-    Chef::Log.warn("We are not using a configfile, as the daemons can be configured via commandline")
   else
     daemon = "/usr/bin/mongos"
-    configfile = nil
     dbpath = nil
-    configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+  end
+
+  if type == "configserver"
+    configsvr = true
   end
   
-  # default file
-  template "#{node['mongodb']['defaults_dir']}/#{name}" do
-    action :create
-    source "mongodb.default.erb"
-    group node['mongodb']['root_group']
-    owner "root"
-    mode "0644"
-    variables(
-      "daemon_path" => daemon,
-      "name" => name,
-      "config" => configfile,
-      "configdb" => configserver,
-      "port" => port,
-      "logpath" => logfile,
-      "dbpath" => dbpath,
-      "replicaset_name" => replicaset_name,
-      "configsrv" => false, #type == "configserver", this might change the port
-      "shardsrv" => false,  #type == "shard", dito.
-      "enable_rest" => params[:enable_rest]
-    )
-    notifies :start, "service[#{name}]"
+  if type == "shard"
+    shardsvr = true
   end
   
   # log dir [make sure it exists]
@@ -125,19 +111,45 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     end
   end
   
-  # init script
-  template "#{node['mongodb']['init_dir']}/#{name}" do
+  # Setup DB Config File
+  template "#{configfile}" do
     action :create
-    source "mongodb.init.erb"
+    source "mongodb.config.erb"
     group node['mongodb']['root_group']
     owner "root"
-    mode "0755"
-    variables :provides => name
+    mode 0644
+    variables(
+      "dbpath"		=> dbpath,
+      "logpath"		=> logfile,
+      "port"		=> port,
+      "configdb"	=> configservers,
+      "replicaset_name"	=> replicaset_name,
+      "configsvr"	=> configsvr,
+      "shardsvr"	=> shardsvr,
+      "enable_rest"	=> enable_rest
+    )
     notifies :start, "service[#{name}]"
   end
-  
+
+  # Setup Upstart Config File
+  # (use logpath, not logfile)
+  template "#{upstartfile}" do
+    action :create
+    source "mongodb.upstart.erb"
+    group node['mongodb']['root_group']
+    owner "root"
+    mode 0644
+    variables(
+      "daemon" => daemon,
+      "dbpath" => dbpath,
+      "logpath" => logpath
+    )
+    notifies :start, "service[#{name}]"
+  end
+
   # service
   service name do
+    provider Chef::Provider::Service::Upstart
     sleep(60)
     supports :status => true, :start => true
     action service_action
@@ -148,10 +160,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     if type == "mongos"
       notifies :create, "ruby_block[config_sharding]", :immediately
     end
-    if name == "mongodb"
+    #if name == "mongodb"
       # we don't care about a running mongodb service in these cases, all we need is stopping it
-      ignore_failure true
-    end
+    #  ignore_failure true
+    #end
   end
   
   # replicaset
