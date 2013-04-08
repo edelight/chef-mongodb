@@ -21,7 +21,7 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
     :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :enable_rest => false, :upstartfile => "/etc/init/mongodb.conf", \
+    :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
     
   include_recipe "mongodb::default"
@@ -38,7 +38,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   dbpath = params[:dbpath]
 
-  upstartfile = params[:upstartfile]
+  upstartfile = "/etc/init/#{name}.conf"
   
   configfile = params[:configfile]
   configserver_nodes = params[:configserver]
