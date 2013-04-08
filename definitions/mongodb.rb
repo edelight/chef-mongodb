@@ -20,7 +20,7 @@
 #
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
-    :logpath => "/var/log/mongodb", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
+    :logpath => "/log", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
     :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
     
@@ -208,5 +208,16 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       action :nothing
     end
   end
-end
 
+if %w{ ubuntu debian }.include? node.platform  
+    ruby_block "uncomment_pam_limits" do
+      block do
+        f = Chef::Util::FileEdit.new('/etc/pam.d/su')
+        f.search_file_replace(/^\#\s+(session\s+required\s+pam_limits.so)/, '\1')
+        f.write_file
+        Chef::Log.info("Updating pam_limits file if necessary")
+       end
+      only_if "egrep '^#\s+session\s+required\s+pam_limits\.so\s*$' /etc/pam.d/su"
+     end
+   end
+end

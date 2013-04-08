@@ -132,6 +132,4 @@ ruby_block "Configuring EBS drives to RAID 10 for MongoDB" do
       FileSystem_Config.configure_to_filesystem()
       FileSystem_Config.mount_drives(dev_mount, log_dir, data_dir, journal_dir)
     end
-end
 =end
-
