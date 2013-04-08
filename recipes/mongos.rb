@@ -32,7 +32,7 @@ configsvr = search(
    chef_environment:#{node.chef_environment}"
 )
 
-  Chef::Log.info( "Searching for Mongo Config Servers -- search result is: #{configsvr}" );
+Chef::Log.info( "Searching for Mongo Config Servers -- search result is: #{configsvr}" );
 
 if configsvr.length != 1 and configsvr.length != 3
   Chef::Log.error("Found #{configsvr.length} configserver, need either one or three of them")
