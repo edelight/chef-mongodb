@@ -110,11 +110,17 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       recursive true
     end
   end
+
+  if type != "mongos"
+     template_source = "mongodb.config.erb"
+  else
+     template_source = "mongos.config.erb"
+  end
   
   # Setup DB Config File
   template "#{configfile}" do
     action :create
-    source "mongodb.config.erb"
+    source template_source
     group node['mongodb']['root_group']
     owner "root"
     mode 0644
@@ -209,7 +215,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     end
   end
 
-if %w{ ubuntu debian }.include? node.platform  
+if %w{ ubuntu debian }.include? node.platform
     ruby_block "uncomment_pam_limits" do
       block do
         f = Chef::Util::FileEdit.new('/etc/pam.d/su')

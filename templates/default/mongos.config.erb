@@ -1,0 +1,60 @@
+# mongodb.conf
+
+<%= @configdb ? "configdb = #{@configdb}" : "# configdb =" %>
+<%= @enable_rest ? "rest = true" : "# rest = false" %>
+
+#where to log (using syslog)
+# logpath =
+# logappend = true
+
+syslog = true
+
+# bind_ip = 127.0.0.1
+
+port = <%= @port ? "#{@port}" : "27017" %>
+
+# Turn on/off security.  Off is currently the default
+#noauth = true
+#auth = true
+
+# Verbose logging output.
+#verbose = true
+
+# Set oplogging level where n is
+#   0=off (default)
+#   1=W
+#   2=R
+#   3=both
+#   7=W+some reads
+#oplog = 0
+
+# Diagnostic/debugging option
+#nocursors = true
+
+# Ignore query hints
+#nohints = true
+
+# Disable the HTTP interface (Defaults to localhost:27018).
+#nohttpinterface = true
+
+# Turns off server-side scripting.  This will result in greatly limited
+# functionality
+#noscripting = true
+
+# Turns off table scans.  Any query that would do a table scan fails.
+#notablescan = true
+
+# Disable data file preallocation.
+#noprealloc = true
+
+# Specify .ns file size for new databases.
+# nssize = <size>
+
+# Accout token for Mongo monitoring server.
+#mms-token = <token>
+
+# Server name for Mongo monitoring server.
+#mms-name = <server-name>
+
+# Ping interval for Mongo monitoring server.
+#mms-interval = <seconds>
