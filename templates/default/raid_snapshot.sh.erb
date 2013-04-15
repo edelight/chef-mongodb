@@ -1,0 +1,25 @@
+#!/bin/bash
+export AWS_ACCESS_KEY_ID="<%=@awskey%>"
+export AWS_SECRET_ACCESS_KEY="<%=@seckey%>"
+
+daily_backup="/var/tmp/.mongo_daily_backup_timestamp"
+day_ago="/var/tmp//.mongo_day_ago_timestamp"
+
+touch -d "$(date -d '1 days ago')" $day_ago
+
+# if no daily_backup timestamp, make one
+if ! test -f $daily_backup ; then
+  string="Daily Mongo RAID Snapshot $(date +%F:%T)"
+  touch -d "$(date -d '2 days ago')" $daily_backup
+fi
+
+# if daily_backup timestamp is older than a day_ago, make daily snapshot
+if [ $daily_backup -ot $day_ago ] ; then
+  string="Daily Mongo RAID Snapshot $(date +%F:%T)"
+  touch $daily_backup
+else
+  string="Mongo RAID Snapshot $(date +%F:%T)"
+fi
+
+/usr/local/bin/ec2-consistent-snapshot --quiet --mongo --region <%= @region %> --description "$string" <%= node['backups']['mongo_volumes'].join(" ") %>
+

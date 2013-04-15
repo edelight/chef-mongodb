@@ -22,6 +22,8 @@ default[:mongodb][:logpath] = "/var/log/mongodb"
 default[:mongodb][:bind_ip] = nil
 default[:mongodb][:port] = 27017
 
+default[:mongodb][:use_config_file] = true
+
 # cluster identifier
 default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
@@ -52,6 +54,14 @@ when "centos","redhat","fedora","amazon","scientific"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
 
+when "ubuntu"
+  default[:mongodb][:defaults_dir] = "/etc/default"
+  default[:mongodb][:init_dir] = "/etc/init"
+  default[:mongodb][:init_script_template] = "mongodb.upstart.erb"
+  default[:mongodb][:root_group] = "root"
+  default[:mongodb][:package_name] = "mongodb-10gen"
+  default[:mongodb][:apt_repo] = "ubuntu-upstart"
+
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"
@@ -59,3 +69,26 @@ else
   default[:mongodb][:apt_repo] = "debian-sysvinit"
 
 end
+
+# the field to use for auto-discovery
+default[:mongodb][:ec2_dns] = 'fqdn'
+
+# whether to load a fresh replicaset or use EBS snapshots
+default[:mongodb][:use_ebs_snapshots] = false
+
+# If you're using EBS, piops volume info (only applicable to the raid_data recipe)
+default[:mongodb][:ebs_filesystem] = 'xfs'
+default[:mongodb][:use_piops] = true
+default[:mongodb][:piops] = 1000
+default[:mongodb][:volsize] = 1000
+default[:mongodb][:vols] = 2
+# set blockdev read ahead to something sane
+default[:mongodb][:setra] = 512
+
+# identify the host that will be running backups - override this value in your node or role
+default[:mongodb][:backup_host] = nil
+
+default[:backups][:mongo_volumes] = []
+
+default[:mongodb][:mms_source] = "https://mms.10gen.com/settings/10gen-mms-agent.zip"
+default[:mongodb][:mms_dir] = "/var/lib/mms"

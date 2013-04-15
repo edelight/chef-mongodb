@@ -26,6 +26,9 @@ end
 needs_mongo_gem = (node.recipe?("mongodb::replicaset") or node.recipe?("mongodb::mongos"))
 
 if needs_mongo_gem
+  chef_gem 'mongo' do
+    action :install
+  end
   # install the mongo ruby gem at compile time to make it globally available
   gem_package 'mongo' do
     action :nothing

@@ -50,7 +50,7 @@ class Chef::ResourceDefinitionList::MongoDB
     rs_members = []
     members.each_index do |n|
       port = members[n]['mongodb']['port']
-      rs_members << {"_id" => n, "host" => "#{members[n]['fqdn']}:#{port}"}
+      rs_members << {"_id" => n, "host" => "#{members[n][node[:mongodb][:ec2_dns]]}:#{port}"}
     end
 
     
@@ -94,7 +94,7 @@ class Chef::ResourceDefinitionList::MongoDB
           members.each do |n|
             ip, prt = mem_h['host'].split(":")
             if ip == n['ipaddress']
-              mapping["#{ip}:#{prt}"] = "#{n['fqdn']}:#{prt}"
+              mapping["#{ip}:#{prt}"] = "#{n[node[:mongodb][:ec2_dns]]}:#{prt}"
             end
           end
         end
@@ -168,7 +168,7 @@ class Chef::ResourceDefinitionList::MongoDB
       else
         key = '_single'
       end
-      shard_groups[key] << "#{n['fqdn']}:#{n['mongodb']['port']}"
+      shard_groups[key] << "#{n[node[:mongodb][:ec2_dns]]}:#{n['mongodb']['port']}"
     end
     Chef::Log.info(shard_groups.inspect)
     
