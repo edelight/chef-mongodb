@@ -28,6 +28,9 @@ default[:mongodb][:cluster_name] = nil
 default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
+default[:mongodb][:auto_configure][:replicaset] = true
+default[:mongodb][:auto_configure][:sharding] = true
+
 default[:mongodb][:enable_rest] = false
 
 default[:mongodb][:user] = "mongodb"

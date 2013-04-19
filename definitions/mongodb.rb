@@ -144,10 +144,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     service_notifies.each do |service_notify|
       notifies :run, service_notify
     end
-    if !replicaset_name.nil?
+    if !replicaset_name.nil? && node['mongodb']['auto_configure']['replicaset']
       notifies :create, "ruby_block[config_replicaset]"
     end
-    if type == "mongos"
+    if type == "mongos" && node['mongodb']['auto_configure']['sharding']
       notifies :create, "ruby_block[config_sharding]", :immediately
     end
     if name == "mongodb"
@@ -157,7 +157,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # replicaset
-  if !replicaset_name.nil?
+  if !replicaset_name.nil? && node['mongodb']['auto_configure']['replicaset']
     rs_nodes = search(
       :node,
       "mongodb_cluster_name:#{replicaset['mongodb']['cluster_name']} AND \
@@ -177,7 +177,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # sharding
-  if type == "mongos"
+  if type == "mongos" && node['mongodb']['auto_configure']['sharding']
     # add all shards
     # configure the sharded collections
     
