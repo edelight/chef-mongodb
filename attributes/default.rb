@@ -48,7 +48,20 @@ when "freebsd"
   default[:mongodb][:root_group] = "wheel"
   default[:mongodb][:package_name] = "mongodb"
 
-when "centos","redhat","fedora","amazon","scientific"
+when "centos","redhat"
+  default[:mongodb][:defaults_dir] = "/etc/sysconfig"
+  default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
+  if node['mongodb']['repo_10gen']
+    default[:mongodb][:package_name] = "mongo-10gen-server"
+    default[:mongodb][:user] = "mongod"
+    default[:mongodb][:group] = "mongod"
+  else
+    default[:mongodb][:package_name] = "mongodb-server"
+    default[:mongodb][:user] = "mongodb"
+    default[:mongodb][:group] = "mongodb"
+  end
+
+when "fedora","amazon","scientific"
   default[:mongodb][:defaults_dir] = "/etc/sysconfig"
   default[:mongodb][:package_name] = "mongo-10gen-server"
   default[:mongodb][:user] = "mongod"
