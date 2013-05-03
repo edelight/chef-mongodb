@@ -2,7 +2,7 @@ maintainer        "edelight GmbH"
 maintainer_email  "markus.korn@edelight.de"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.13.1"
+version           "0.13.2"
 depends           'aws_ebs_disk'
 #depends           'tealium_aws'
 
