@@ -162,7 +162,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     sleep(60)
     supports :status => true, :start => true
     action service_action
-    notifies service_notifies
+    notifies :start, service_notifies
     if !replicaset_name.nil?
       notifies :create, "ruby_block[config_replicaset]"
     end
