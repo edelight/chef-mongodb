@@ -57,7 +57,7 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
     port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
+#    logpath      node['mongodb']['logpath']
     dbpath       node['mongodb']['dbpath']
     enable_rest  node['mongodb']['enable_rest']
   end

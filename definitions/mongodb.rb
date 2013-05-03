@@ -20,7 +20,7 @@
 #
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
-    :logpath => "/log", :dbpath => "/data", :configfile => "/etc/mongodb.conf", \
+    :logpath => nil, :dbpath => "/data/mongodb", :configfile => "/etc/mongodb.conf", \
     :configserver => [], :replicaset => nil, :enable_rest => false, \
     :notifies => [] do
     
@@ -33,8 +33,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   port = params[:port]
 
-  logpath = params[:logpath]
-  logfile = "#{logpath}/#{name}.log"
+  #logpath = params[:logpath]
+  #logfile = "#{logpath}/#{name}.log"
   
   dbpath = params[:dbpath]
 
@@ -80,7 +80,12 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   else
     daemon = "/usr/bin/mongos"
     dbpath = nil
-    configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    if node['fqdn'].nil? then
+      configserver = configserver_nodes.collect{|n| "#{n['ipaddress']}:#{n['mongodb']['port']}" }.join(",")
+    else
+      configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    end
+#   configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
   end
 
   if type == "configserver"
@@ -92,13 +97,13 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # log dir [make sure it exists]
-  directory logpath do
-    owner "mongodb"
-    group "mongodb"
-    mode "0755"
-    action :create
-    recursive true
-  end
+  #directory logpath do
+  #  owner "mongodb"
+  #  group "mongodb"
+  #  mode "0755"
+  #  action :create
+  #  recursive true
+  #end
   
   if type != "mongos"
     # dbpath dir [make sure it exists]
@@ -126,7 +131,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     mode 0644
     variables(
       "dbpath"		=> dbpath,
-      "logpath"		=> logfile,
       "port"		=> port,
       "configdb"	=> configservers,
       "replicaset_name"	=> replicaset_name,
@@ -147,8 +151,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     mode 0644
     variables(
       "daemon" => daemon,
-      "dbpath" => dbpath,
-      "logpath" => logpath
+      "dbpath" => dbpath
     )
     notifies :start, "service[#{name}]"
   end

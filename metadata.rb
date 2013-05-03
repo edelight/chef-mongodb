@@ -4,6 +4,7 @@ license           "Apache 2.0"
 description       "Installs and configures mongodb"
 version           "0.13.1"
 depends           'aws_ebs_disk'
+#depends           'tealium_aws'
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -23,12 +24,14 @@ end
 attribute "mongodb/dbpath",
   :display_name => "dbpath",
   :description => "Path to store the mongodb data",
-  :default => "/var/lib/mongodb"
+  :default => "/data/mongodb"
+  #:default => "/var/lib/mongodb"
   
-attribute "mongodb/logpath",
-  :display_name => "logpath",
-  :description => "Path to store the logfiles of a mongodb instance",
-  :default => "/var/log/mongodb"
+#attribute "mongodb/logpath",
+#  :display_name => "logpath",
+#  :description => "Path to store the logfiles of a mongodb instance",
+#  :default => "/data/mongodb/log"
+#  #:default => "/var/log/mongodb"
   
 attribute "mongodb/port",
   :display_name => "Port",

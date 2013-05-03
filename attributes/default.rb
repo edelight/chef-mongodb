@@ -21,8 +21,8 @@ default[:mongodb][:user] = "mongodb"
 default[:mongodb][:group] = "mongodb"
 
 default[:mongodb][:dbpath]       = "/data/mongodb"
-default[:mongodb][:logpath]      = "/log/mongodb"
-default[:mongodb][:journal_path] = "/journal" 
+#default[:mongodb][:logpath]      = "/log/mongodb"
+default[:mongodb][:journal_path] = "/data/mongodb/journal" 
 default[:mongodb][:logappend] = true
 
 default[:mongodb][:port] = 27017
@@ -35,7 +35,7 @@ default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 default[:mongodb][:enable_rest] = false
 
-default[:mongodb][:mongodb_log] = "log"
+#default[:mongodb][:mongodb_log] = "log"
 default[:mongodb][:mongodb_data] = "data"
 default[:mongodb][:mongodb_journal] = "journal"
 

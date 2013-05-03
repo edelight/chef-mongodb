@@ -28,6 +28,7 @@ class Chef::ResourceDefinitionList::MongoDB
     # lazy require, to move loading this modules to runtime of the cookbook
     require 'rubygems'
     require 'mongo'
+    require 'pp'
 
     if members.length == 0
       if Chef::Config[:solo]
@@ -37,7 +38,16 @@ class Chef::ResourceDefinitionList::MongoDB
       members << node unless members.include?(node)
     end
 
-    host_members = members.collect{ |m| m['fqdn'] + ":" + node['mongodb']['port'].to_s }
+    host_members = members.collect{ |m|
+      Chef::Log.debug(pp(m))
+      host = if m['fqdn'].nil? then 
+          m['ipaddress'] 
+      else 
+         m['fqdn'] 
+      end
+
+      host + ":" + node['mongodb']['port'].to_s 
+    }
 
     is_replicaset = false
 
@@ -70,7 +80,17 @@ class Chef::ResourceDefinitionList::MongoDB
       Chef::Log.info("Initiating replicaset")
       retries = 10
       begin
-        connection = Mongo::Connection.new(members.first['fqdn'], members.first['mongodb']['port'])
+       
+        if members.first['fqdn'].nil? then
+          connection = Mongo::Connection.new(members.first['ipaddress'], members.first['mongodb']['port'])
+        else
+          connection = Mongo::Connection.new(members.first['fqdn'], members.first['mongodb']['port'])
+        end 
+
+        #####connection = Mongo::Connection.new(members.first[host], members.first['mongodb']['port'])
+        #####connection = Mongo::Connection.new(members.first['fqdn'], members.first['mongodb']['port'])
+
+
       rescue Mongo::ConnectionFailure
         if (retries > 0)
           Chef::Log.warn("Unable to connect to #{host_members.first}, retrying ...")
@@ -86,7 +106,14 @@ class Chef::ResourceDefinitionList::MongoDB
       end
 
       rs_members = []
-      rs_members << {"_id" => 0, "host" => node['fqdn'] }
+        if node['fqdn'].nil?
+          rs_members << {"_id" => 0, "host" => node['ipaddress'] }
+        else
+          rs_members << {"_id" => 0, "host" => node['fqdn'] }
+        end
+
+      ######rs_members << {"_id" => 0, "host" => node[host] }
+      ######rs_members << {"_id" => 0, "host" => node['fqdn'] }
 
       cmd = BSON::OrderedHash.new
       cmd['replSetInitiate'] = {
@@ -134,22 +161,56 @@ class Chef::ResourceDefinitionList::MongoDB
       max_id = max_id + 1
 
       # Want the node originating the connection to be included in the replicaset
-      fqdns = members.collect{ |m| m['fqdn'] }
-      members << node unless fqdns.include?(node['fqdn'])
+      fqdns = members.collect{ |m|
+        if ['fqdn'].nil? then
+          m['ipaddress']
+        else 
+          m['fqdn']
+        end
+      }
+      #fqdns = members.collect{ |m| m['fqdn'] }
+      
+      if node['fqdn'].nil? then
+        members << node unless fqdns.include?(node['ipaddress'])
+      else
+        members << node unless fqdns.include?(node['fqdn'])
+      end
+
+      #members << node unless fqdns.include?(node['fqdn'])
 
       #Reconfigure replicaset
       members.sort!{ |x,y| x.name <=> y.name }
       rs_members = []
       members.each_index do |n|
         Chef::Log.info(n)
-        if members[n]['fqdn'] == node['fqdn'] && members[n]['mongodb']['replicaset_member_id'] == nil
-          rs_members << {"_id" => max_id, "host" => "#{node['fqdn']}:#{node['mongodb']['port']}"}
-        elsif members[n]['mongodb']['replicaset_member_id'] != nil
-          rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n]['fqdn']}:#{members[n]['mongodb']['port']}"}
+
+
+        if node['fqdn'].nil? then
+          if members[n]['ipaddress'] == node['ipaddress'] && members[n]['mongodb']['replicaset_member_id'] == nil
+            rs_members << {"_id" => max_id, "host" => "#{node['ipaddress']}:#{node['mongodb']['port']}"}
+          elsif members[n]['mongodb']['replicaset_member_id'] != nil
+            rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n]['ipaddress']}:#{members[n]['mongodb']['port']}"}
+          end  
+        else 
+          if members[n]['fqdn'] == node['fqdn'] && members[n]['mongodb']['replicaset_member_id'] == nil
+            rs_members << {"_id" => max_id, "host" => "#{node['fqdn']}:#{node['mongodb']['port']}"}
+          elsif members[n]['mongodb']['replicaset_member_id'] != nil
+            rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n]['fqdn']}:#{members[n]['mongodb']['port']}"}
+          end
         end
+
+       #if members[n]['fqdn'] == node['fqdn'] && members[n]['mongodb']['replicaset_member_id'] == nil
+       #    rs_members << {"_id" => max_id, "host" => "#{node[host]}:#{node['mongodb']['port']}"}
+       #  elsif members[n]['mongodb']['replicaset_member_id'] != nil
+       #    rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n][host]}:#{members[n]['mongodb']['port']}"}
+       #  end
       end
 
-      Chef::Log.info("Configuring replicaset with members #{members.collect{ |n| n['fqdn'] }.join(', ')}")
+      if node['fqdn'].nil? then
+        Chef::Log.info("Configuring replicaset with members #{members.collect{ |n| n['ipaddress'] }.join(', ')}")
+      else
+        Chef::Log.info("Configuring replicaset with members #{members.collect{ |n| n['fqdn'] }.join(', ')}")
+      end
 
       #Increment document version
       config['version'] += 1
@@ -164,16 +225,31 @@ class Chef::ResourceDefinitionList::MongoDB
 
       retries = 5
       begin
-        testconn = Mongo::Connection.new(node.fqdn, node['mongodb']['port'])
+        if node['fqdn'].nil? then
+          testconn = Mongo::Connection.new(node.ipaddress, node['mongodb']['port'])
+        else
+          testconn = Mongo::Connection.new(node.fqdn, node['mongodb']['port'])
+        end 
+        #testconn = Mongo::Connection.new(node.fqdn, node['mongodb']['port'])
       rescue Mongo::ConnectionFailure
         if (retries > 0)
-          Chef::Log.warn("Unable to connect to #{node.fqdn}, retrying in 20 seconds ...")
+          if node['fqdn'].nil? then
+            Chef::Log.warn("Unable to connect to #{node.ipaddress}, retrying in 20 seconds ...")
+          else
+            Chef::Log.warn("Unable to connect to #{node.fqdn}, retrying in 20 seconds ...")
+          end
+          #Chef::Log.warn("Unable to connect to #{node.fqdn}, retrying in 20 seconds ...")
           retries -= 1
           sleep(20)
           retry
         end
       rescue => error_code
-        Chef::Log.warn("Unable to connect to #{node.fqdn}. #{error_code}")
+        if node['fqdn'].nil? then
+          Chef::Log.warn("Unable to connect to #{node.ipaddress}. #{error_code}")
+        else
+          Chef::Log.warn("Unable to connect to #{node.fqdn}. #{error_code}")
+        end
+        #Chef::Log.warn("Unable to connect to #{node.fqdn}. #{error_code}")
         return
       end
 
@@ -219,8 +295,14 @@ class Chef::ResourceDefinitionList::MongoDB
       else
         key = '_single'
       end
-      shard_groups[key] << "#{n['fqdn']}:#{n['mongodb']['port']}"
+
+      if node['fqdn'].nil? then
+        shard_groups[key] << "#{n['ipaddress']}:#{n['mongodb']['port']}"
+      else
+        shard_groups[key] << "#{n['fqdn']}:#{n['mongodb']['port']}"
+      end
     end
+
     Chef::Log.info(shard_groups.inspect)
     
     shard_members = []

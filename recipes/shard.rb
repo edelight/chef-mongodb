@@ -36,7 +36,7 @@ is_replicated = node.recipes.include?("mongodb::replicaset")
 mongodb_instance "mongodb_shard" do
   mongodb_type "shard"
   port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
+#  logpath      node['mongodb']['logpath']
   dbpath       node['mongodb']['dbpath']
   if is_replicated
     replicaset    node
