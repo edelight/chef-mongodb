@@ -42,7 +42,6 @@ end
 mongodb_instance "mongos" do
   mongodb_type "mongos"
   port         node['mongodb']['port']
-#  logpath      node['mongodb']['logpath']
   dbpath       node['mongodb']['dbpath']
   configserver configsvr
   enable_rest  node['mongodb']['enable_rest']

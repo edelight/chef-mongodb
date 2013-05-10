@@ -25,6 +25,7 @@ include_recipe "aws_ebs_disk"
 # Install upstart-job link 
 #
 bash "Replacing /etc/init.d/mongodb with upstart-job hook" do
+  not_if { ::File.symlink?("/etc/init.d/mongodb") }
   code <<-BASH_SCRIPT
   rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job /etc/init.d/mongodb
   BASH_SCRIPT
@@ -59,13 +60,12 @@ if node.recipes.include?("mongodb::default") or node.recipes.include?("mongodb")
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
     port         node['mongodb']['port']
-#    logpath      node['mongodb']['logpath']
     dbpath       node['mongodb']['dbpath']
     enable_rest  node['mongodb']['enable_rest']
   end
 end
 
-bash "Edit keep alive time" do
+bash "Set tcp_keepalive_time" do
   code <<-BASH_SCRIPT
   user "root"
   echo #{node[:mongodb][:keep_alive_time]} >> /proc/sys/net/ipv4/tcp_keepalive_time

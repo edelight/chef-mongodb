@@ -33,9 +33,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   port = params[:port]
 
-  #logpath = params[:logpath]
-  #logfile = "#{logpath}/#{name}.log"
-  
   dbpath = params[:dbpath]
 
   upstartfile = "/etc/init/#{name}.conf"
@@ -95,15 +92,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   if type == "shard"
     shardsvr = true
   end
-  
-  # log dir [make sure it exists]
-  #directory logpath do
-  #  owner "mongodb"
-  #  group "mongodb"
-  #  mode "0755"
-  #  action :create
-  #  recursive true
-  #end
   
   if type != "mongos"
     # dbpath dir [make sure it exists]
@@ -169,10 +157,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     if type == "mongos"
       notifies :create, "ruby_block[config_sharding]", :immediately
     end
-    #if name == "mongodb"
-      # we don't care about a running mongodb service in these cases, all we need is stopping it
-    #  ignore_failure true
-    #end
   end
   
   # replicaset

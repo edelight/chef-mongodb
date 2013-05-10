@@ -6,7 +6,6 @@ kill timeout 30 # wait 30s between SIGTERM and SIGKILL.
 
 pre-start script
 <%= @dbpath ? "mkdir -p #{@dbpath}" : "" %>
-<%= @logpath ? "mkdir -p #{@logpath}" : "" %>
 end script
 
 start on runlevel [2345]
