@@ -36,6 +36,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   dbpath = params[:dbpath]
 
   upstartfile = "/etc/init/#{name}.conf"
+  rcfile = "/etc/init.d/#{name}"
   
   configfile = params[:configfile]
   configserver_nodes = params[:configserver]
@@ -142,6 +143,16 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "dbpath" => dbpath
     )
     notifies :start, "service[#{name}]"
+  end
+
+  #
+  # Install upstart-job link 
+  #
+  bash "Replacing /etc/init.d/mongodb with upstart-job hook (#{rcfile})" do
+    not_if { ::File.symlink?(rcfile) }
+    code <<-BASH_SCRIPT
+    rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job #{rcfile}
+    BASH_SCRIPT
   end
 
   # service

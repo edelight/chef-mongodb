@@ -21,16 +21,6 @@
 
 include_recipe "aws_ebs_disk"
 
-#
-# Install upstart-job link 
-#
-bash "Replacing /etc/init.d/mongodb with upstart-job hook" do
-  not_if { ::File.symlink?("/etc/init.d/mongodb") }
-  code <<-BASH_SCRIPT
-  rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job /etc/init.d/mongodb
-  BASH_SCRIPT
-end
-
 package "mongodb" do
   package_name "mongodb-10gen"
   version "2.4.3"
