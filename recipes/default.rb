@@ -31,6 +31,7 @@ bash "Replacing /etc/init.d/mongodb with upstart-job hook" do
 end
 
 package "mongodb" do
+  version "2.4.3"
   action :install
 end
 
