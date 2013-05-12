@@ -38,7 +38,7 @@ when "debian"
     action :add
     notifies :run, "execute[apt-get update]", :immediately
   end
-  node['mongodb']['repo_10gen'] = true
+  node.set['mongodb']['repo_10gen'] = true
 
 when "rhel","fedora"
   yum_repository "10gen" do
@@ -46,9 +46,9 @@ when "rhel","fedora"
     url "http://downloads-distro.mongodb.org/repo/redhat/os/#{node['kernel']['machine']  =~ /x86_64/ ? 'x86_64' : 'i686'}"
     action :add
   end
-  node['mongodb']['repo_10gen'] = true
+  node.set['mongodb']['repo_10gen'] = true
 
 else
   Chef::Log.warn("Adding the #{node['platform']} 10gen repository is not yet not supported by this cookbook")
-  node['mongodb']['repo_10gen'] = false
+  node.set['mongodb']['repo_10gen'] = false
 end
