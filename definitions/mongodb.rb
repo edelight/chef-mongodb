@@ -202,14 +202,18 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
        chef_environment:#{node.chef_environment}"
     )
     
-    ruby_block "config_sharding" do
-      block do
-        if type == "mongos"
-          MongoDB.configure_shards(node, shard_nodes)
-          MongoDB.configure_sharded_collections(node, node['mongodb']['sharded_collections'])
-        end
-      end
-      action :nothing
+    if not shard_nodes.nil?
+       ruby_block "config_sharding" do
+	 block do
+	   if type == "mongos"
+	     MongoDB.configure_shards(node, shard_nodes)
+	     MongoDB.configure_sharded_collections(node, node['mongodb']['sharded_collections'])
+	   end
+	 end
+	 action :nothing
+       end
+    else
+       Chef::Log.info("Found no shard nodes to configure.")
     end
   end
 
