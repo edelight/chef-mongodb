@@ -127,7 +127,6 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "shardsvr"	=> shardsvr,
       "enable_rest"	=> enable_rest
     )
-    notifies :start, "service[#{name}]"
   end
 
   # Setup Upstart Config File
@@ -142,17 +141,24 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "daemon" => daemon,
       "dbpath" => dbpath
     )
-    notifies :start, "service[#{name}]"
   end
 
   #
   # Install upstart-job link 
   #
-  bash "Replacing /etc/init.d/mongodb with upstart-job hook (#{rcfile})" do
+  bash "Replacing MongoDB init.d script with upstart-job hook (#{rcfile})" do
     not_if { ::File.symlink?(rcfile) }
-    code <<-BASH_SCRIPT
-    rm -f /etc/init.d/mongodb && ln -s /lib/init/upstart-job #{rcfile}
-    BASH_SCRIPT
+    if type != "mongos"
+      code <<-BASH_SCRIPT
+      rm -f /etc/init.d/mongodb
+      ln -s /lib/init/upstart-job #{rcfile}
+      BASH_SCRIPT
+    else
+      code <<-BASH_SCRIPT
+      rm -f /etc/init.d/mongos
+      ln -s /lib/init/upstart-job #{rcfile}
+      BASH_SCRIPT
+    end
   end
 
   # service
@@ -203,11 +209,18 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     )
     
     if not shard_nodes.nil?
+       Chef::Log.info("Found #{shard_nodes.count()} shard nodes.")
        ruby_block "config_sharding" do
 	 block do
 	   if type == "mongos"
+             Chef::Log.info("Adding shard nodes...")
 	     MongoDB.configure_shards(node, shard_nodes)
-	     MongoDB.configure_sharded_collections(node, node['mongodb']['sharded_collections'])
+             if not node['mongodb']['sharded_collections'].nil?
+                Chef::Log.info("Sharding collections...")
+	        MongoDB.configure_sharded_collections(node, node['mongodb']['sharded_collections'])
+             else
+                Chef::Log.info("No collections were sharded.")
+             end
 	   end
 	 end
 	 action :nothing
