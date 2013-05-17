@@ -38,6 +38,11 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicatset
+* `mongodb[:use_config_file]` - Use a config file instead of command
+    line arguments to start the server
+* `mongodb[:should_restart_server]` - Controls whether the cookbook
+    notifies the service to restart. Default is true; set to false and
+    config file changes will not result in a server restart.
 
 # USAGE:
 

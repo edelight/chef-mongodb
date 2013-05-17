@@ -27,6 +27,7 @@ default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
 default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
+default[:mongodb][:replicaset_prefix] = "rs_"
 
 default[:mongodb][:auto_configure][:replicaset] = true
 default[:mongodb][:auto_configure][:sharding] = true
@@ -40,6 +41,11 @@ default[:mongodb][:root_group] = "root"
 default[:mongodb][:init_dir] = "/etc/init.d"
 
 default[:mongodb][:init_script_template] = "mongodb.init.erb"
+
+# set this to true to use /etc/mongdb.conf instead of command line arguments
+default[:mongodb][:use_config_file] = false
+# set this to false to stop the cookbook from restarting mongodb when config files change
+default[:mongodb][:should_restart_server] = true
 
 case node['platform']
 when "freebsd"
@@ -55,6 +61,14 @@ when "centos","redhat","fedora","amazon","scientific"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
 
+when "ubuntu"
+  default[:mongodb][:defaults_dir] = "/etc/default"
+  default[:mongodb][:init_dir] = "/etc/init"
+  default[:mongodb][:init_script_template] = "mongodb.upstart.erb"
+  default[:mongodb][:root_group] = "root"
+  default[:mongodb][:package_name] = "mongodb-10gen"
+  default[:mongodb][:apt_repo] = "ubuntu-upstart"
+
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"
@@ -62,3 +76,17 @@ else
   default[:mongodb][:apt_repo] = "debian-sysvinit"
 
 end
+
+# whether to load a fresh replicaset or use EBS snapshots
+default[:mongodb][:use_ebs_snapshots] = false
+
+# If you're using EBS, piops volume info (only applicable to the raid_data recipe)
+default[:mongodb][:use_piops] = true
+default[:mongodb][:piops] = 1000
+default[:mongodb][:volsize] = 1000
+default[:mongodb][:vols] = 2
+# set blockdev read ahead to something sane
+default[:mongodb][:setra] = 512
+
+# identify the host that will be running backups - override this value in your node or role
+default[:mongodb][:backup_host] = nil

@@ -6,6 +6,10 @@ NAME="<%= @name %>"
 
 DAEMON_OPTS=""
 
+<% if @config %>
+# we're using a config file; load parameters there.
+DAEMON_OPTS="$DAEMON_OPTS --config <%= @config %>"
+<% else %>
 <% if @bind_ip -%>
 DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 <% end -%>
@@ -13,7 +17,6 @@ DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 <%= @dbpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --dbpath #{@dbpath}\"" : "" %>
 <%= @logpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --logpath #{@logpath}\"" : "" %>
 
-<%= @config ? "DAEMON_OPTS=\"$DAEMON_OPTS --config #{@config}\"" : "" %>
 <%= @configdb ? "DAEMON_OPTS=\"$DAEMON_OPTS --configdb #{@configdb}\"" : "" %>
 
 <%= @configsrv ? "DAEMON_OPTS=\"$DAEMON_OPTS --configsvr\"" : "" %>
@@ -30,4 +33,5 @@ DAEMON_OPTS="$DAEMON_OPTS --rest"
 <% if %w(centos redhat fedora amazon).include? node.platform -%>
 DAEMON_OPTS="$DAEMON_OPTS --fork"
 DBPATH="<%= @dbpath %>"
+<% end -%>
 <% end -%>

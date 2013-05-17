@@ -21,6 +21,9 @@ include_recipe "mongodb"
 
 # if we are configuring a shard as a replicaset we do nothing in this recipe
 if !node.recipe?("mongodb::shard")
+  # these are used in the library for searches
+  node.set["mongodb_cluster_name"] = node['mongodb']['cluster_name']
+  node.set["mongodb_shard_name"] = node['mongodb']['shard_name']
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
     port         node['mongodb']['port']
