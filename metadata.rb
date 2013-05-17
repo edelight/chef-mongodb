@@ -1,10 +1,8 @@
-maintainer        "edelight GmbH"
-maintainer_email  "markus.korn@edelight.de"
+maintainer        "Tealium"
+maintainer_email  "devops@tealium.com"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.13.2"
-depends           'aws_ebs_disk'
-#depends           'tealium_aws'
+version           "0.13.3"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -13,11 +11,11 @@ recipe "mongodb::configserver", "Installs and configures a configserver for mong
 recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
-%w( apt aws ).each do |cookbook|
+%w( apt aws_ebs_disk aws ).each do |cookbook|
   depends cookbook
 end
 
-%w{ ubuntu debian freebsd }.each do |os|
+%w{ ubuntu }.each do |os|
   supports os
 end
 
@@ -25,23 +23,11 @@ attribute "mongodb/dbpath",
   :display_name => "dbpath",
   :description => "Path to store the mongodb data",
   :default => "/data/mongodb"
-  #:default => "/var/lib/mongodb"
-  
-#attribute "mongodb/logpath",
-#  :display_name => "logpath",
-#  :description => "Path to store the logfiles of a mongodb instance",
-#  :default => "/data/mongodb/log"
-#  #:default => "/var/log/mongodb"
   
 attribute "mongodb/port",
   :display_name => "Port",
   :description => "Port the mongodb instance is running on",
   :default => "27017"
-  
-attribute "mongodb/client_roles",
-  :display_name => "Client Roles",
-  :description => "Roles of nodes who need access to the mongodb instance",
-  :default => []
   
 attribute "mongodb/cluster_name",
   :display_name => "Cluster Name",
