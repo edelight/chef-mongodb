@@ -26,9 +26,16 @@ default[:mongodb][:cluster_name] = nil
 default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 default[:mongodb][:enable_rest] = false
-default[:mongodb][:mongodb_raid_mount] = "/data"
 default[:mongodb][:keep_alive_time] = 300
 default[:mongodb][:ulimits] = Array.new
+
+default[:mongodb][:raid] = nil
+default[:mongodb][:raid_level] = 10
+default[:mongodb][:raid_disk_count] = 4
+default[:mongodb][:raid_disk_size] = 4
+default[:mongodb][:raid_ebs_type] = "standard"
+default[:mongodb][:raid_mount] = "/data"
+default[:mongodb][:setra] = 128
 
 case node['platform']
 when "freebsd"

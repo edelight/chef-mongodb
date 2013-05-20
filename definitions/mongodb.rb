@@ -129,6 +129,14 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     )
   end
 
+  if node[:mongodb][:raid]
+     mnt_point = node[:mongodb][:raid_mount]
+     setra = node[:mongodb][:setra]
+  else
+     mnt_point = ''
+     setra = ''
+  end
+
   # Setup Upstart Config File
   # (use logpath, not logfile)
   template "#{upstartfile}" do
@@ -139,7 +147,10 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     mode 0644
     variables(
       "daemon" => daemon,
-      "dbpath" => dbpath
+      "dbpath" => dbpath,
+      "mnt_point" => mnt_point,
+      "setra" => setra,
+      "raid" => node[:mongodb][:raid]
     )
   end
 

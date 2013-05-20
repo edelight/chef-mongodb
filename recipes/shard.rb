@@ -19,6 +19,23 @@
 # limitations under the License.
 #
 
+if node['cloud'] and 
+   node['cloud']['provider'] == 'ec2' and
+   node['mongodb']['raid'] then
+
+   include_recipe 'aws'
+
+   aws_ebs_raid "data_raid" do
+      level node['mongodb']['raid_level']
+      disk_count node['mongodb']['raid_disk_count']
+      disk_size node['mongodb']['raid_disk_size']
+      disk_type node['mongodb']['raid_ebs_type']
+      mount_point node[:mongodb][:raid_mount]
+      action [ :auto_attach ]
+   end
+
+end
+
 include_recipe "mongodb::default"
 
 # disable and stop the default mongodb instance
