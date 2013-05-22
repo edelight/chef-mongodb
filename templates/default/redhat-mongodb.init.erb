@@ -12,7 +12,7 @@
 
 SYSCONFIG="/etc/sysconfig/<%= @provides %>"
 DAEMON=/usr/bin/mongod
-MONGO_USER=mongod
+MONGO_USER=<%= @mongo_user %>
 
 . "$SYSCONFIG" || true
 
