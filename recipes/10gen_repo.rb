@@ -31,9 +31,9 @@ when "debian"
 
   apt_repository "10gen" do
     uri "http://downloads-distro.mongodb.org/repo/#{node[:mongodb][:apt_repo]}"
-    distribution "dist"
-    components ["10gen"]
-    keyserver "hkp://keyserver.ubuntu.com:80"
+    distributions %w[dist]
+    components %w[10gen]
+    keyserver "hkp://keyserver.ubuntu.com"
     key "7F0CEB10"
     action :add
     notifies :run, "execute[apt-get update]", :immediately
