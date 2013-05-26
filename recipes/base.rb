@@ -1,8 +1,10 @@
 #
 # Cookbook Name:: mongodb
-# Recipe:: replicatset
+# Recipe:: base
 #
 # Copyright 2011, edelight GmbH
+# Authors:
+#       Markus Korn <markus.korn@edelight.de>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,18 +19,16 @@
 # limitations under the License.
 #
 
-node.set[:mongodb][:is_replicaset] = true
+package node[:mongodb][:package_name] do
+  action :install
+end
 
-include_recipe "mongodb::base"
+needs_mongo_gem = (node.mongodb.is_replicaset or node.mongodb.is_shard)
 
-# if we are configuring a shard as a replicaset we do nothing in this recipe
-if !node.mongodb.is_shard
-  mongodb_instance "mongodb" do
-    mongodb_type "mongod"
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-    replicaset   node
-    enable_rest  node['mongodb']['enable_rest']
-  end
+if needs_mongo_gem
+  # install the mongo ruby gem at compile time to make it globally available
+  gem_package 'mongo' do
+    action :nothing
+  end.run_action(:install)
+  Gem.clear_paths
 end

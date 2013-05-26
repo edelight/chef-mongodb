@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+include_recipe "mongodb::base"
 
 service "mongodb" do
   action [:disable, :stop]
@@ -28,7 +28,7 @@ end
 configsrv = search(
   :node,
   "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   recipes:mongodb\\:\\:configserver AND \
+   mongodb_is_configserver:true AND \
    chef_environment:#{node.chef_environment}"
 )
 

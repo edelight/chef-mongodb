@@ -19,7 +19,9 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+node.set[:mongodb][:is_configserver] = true
+
+include_recipe "mongodb::base"
 
 service "mongodb" do
   supports :status => true, :restart => true
