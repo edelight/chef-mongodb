@@ -21,6 +21,7 @@
 
 package node[:mongodb][:package_name] do
   action :install
+  notifies :stop, "service[mongodb]", :immediately
 end
 
 needs_mongo_gem = (node.recipe?("mongodb::replicaset") or node.recipe?("mongodb::mongos"))
