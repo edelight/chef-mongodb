@@ -7,8 +7,16 @@ Installs and configures MongoDB, supporting:
 * Sharding
 * Replication and Sharding
 * 10gen repository package installation
+* 10gen MongoDB Monitoring System
 
 # REQUIREMENTS:
+
+This cookbook depends on these external cookbooks
+
+- apt
+- python
+- runit
+- yum
 
 ## Platform:
 
@@ -38,6 +46,8 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicatset
+* `mongodb[:mms_agent][:api_key]` - MMS Agent API Key
+* `mongodb[:mms_agent][:secret_key]` - MMS Agent API Key
 
 # USAGE:
 
@@ -137,6 +147,24 @@ The setup is not much different to the one described above. All you have to do i
 nodes which should be in the same replicaset have the same shard name.
 
 For more details, you can find a [tutorial for Sharding + Replication](https://github.com/edelight/chef-mongodb/wiki/MongoDB%3A-Replication%2BSharding) in the wiki.
+
+## MMS Agent
+
+This cookbook also includes support for
+{MongoDB Monitoring System (MMS)}[http://www.10gen.com/mongodb-monitoring-service]
+agent. MMS is a hosted monitoring service, provided by 10gen, Inc. Once
+the small python agent program is installed on the MongoDB host, it
+automatically collects the metrics and upload them to the MMS server.
+The graphs of these metrics are shown on the web page. It helps a lot
+for tackling MongoDB related problems, so MMS is the baseline for all
+production MongoDB deployments.
+
+
+To setup MMS, simply set your keys in
+`node['mongodb']['mms_agent']['api_key']` and
+`node['mongodb']['mms_agent']['secret_key']`, then add the
+`mongodb::mms-agent` recipe to your run list. Your current keys should
+be available at your {MMS Settings page}[https://mms.10gen.com/settings].
 
 # LICENSE and AUTHOR:
 

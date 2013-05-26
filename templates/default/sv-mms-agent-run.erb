@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd /usr/local/share/mms-agent/
+
+exec 2>&1
+exec chpst -u root:root python /usr/local/share/mms-agent/agent.py 2>&1

@@ -13,6 +13,8 @@ recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
 depends "apt"
+depends "python"
+depends "runit"
 depends "yum"
 
 %w{ ubuntu debian freebsd centos redhat fedora amazon scientific}.each do |os|
@@ -67,3 +69,14 @@ attribute "mongodb/bind_ip",
   :display_name => "Bind address",
   :description => "MongoDB instance bind address",
   :default => nil
+
+attribute "mongodb/mms_agent",
+  :display_name => "MMS Agent",
+  :description => "Hash of MMS Agent attributes",
+  :type => "hash"
+
+attribute "mongodb/mms_agent/api_key",
+  :display_name => "MMS Agent API Key"
+
+attribute "mongodb/mms_agent/secret_key",
+  :display_name => "MMS Agent Secret Key"
