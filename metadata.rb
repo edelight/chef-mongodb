@@ -7,6 +7,7 @@ version           "0.12"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
+recipe "mongodb::aws_ebs_volume", "Creates EBS volume on Amazon EC2 instance for data / logs storage"
 recipe "mongodb::mongos", "Installs and configures a mongos which can be used in a sharded setup"
 recipe "mongodb::configserver", "Installs and configures a configserver for mongodb sharding"
 recipe "mongodb::shard", "Installs and configures a single shard"
@@ -14,6 +15,7 @@ recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
 depends "apt"
 depends "yum"
+depends "aws"
 
 %w{ ubuntu debian freebsd centos redhat fedora amazon scientific}.each do |os|
   supports os
@@ -67,3 +69,18 @@ attribute "mongodb/bind_ip",
   :display_name => "Bind address",
   :description => "MongoDB instance bind address",
   :default => nil
+
+attribute "mongodb/ebs/volume_size",
+  :display_name => "EBS Volume Size",
+  :description => "Size in GB of EBS volume",
+  :default => "50"
+
+attribute "mongodb/ebs/volume_connection",
+  :display_name => "EBS Volume Connection",
+  :description => "Name of EBS volume connection ",
+  :default => "sdf"
+
+attribute "mongodb/ebs/volume_path",
+  :display_name => "EBS Volume Path",
+  :description => "Path to mount EBS volume and DB data store",
+  :default => "/data/db"
