@@ -198,5 +198,27 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       action :nothing
     end
   end
-end
 
+  if %w{ ubuntu debian }.include? node.platform  
+  
+    ruby_block "uncomment_pam_limits" do
+      block do
+        f = Chef::Util::FileEdit.new('/etc/pam.d/su')
+        f.search_file_replace(/^\#\s+(session\s+required\s+pam_limits.so)/, '\1')
+        f.write_file
+      end
+    end
+
+    ruby_block "update_nofile_limits" do
+      block do
+        f = Chef::Util::FileEdit.new('/etc/security/limits.conf')
+        f.insert_line_after_match(/^\#\*\s+hard/, '*                soft    nofile          64000')
+        f.insert_line_after_match(/^\#\*\s+hard/, '*                hard    nofile          64000')
+        f.write_file
+      end
+      not_if 'grep nofile /etc/security/limits.conf | grep hard'
+    end
+
+  end
+
+end
