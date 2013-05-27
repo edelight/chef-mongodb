@@ -28,6 +28,17 @@ package node[:mongodb][:package_name] do
   action :install
 end
 
+# this is a hack to deal with ubuntu install upstart script
+# and because we don't want to maintain more init scripts
+if node['platform'] == 'ubuntu' and node['mongodb']['install_method'] == 'package' then
+    bash 'remove upstart file' do
+        command 'rm /etc/init/mongodb.conf'
+        action :run
+        only_if 'test -f /etc/init/mongodb.conf'
+    end
+end
+# end hack
+
 needs_mongo_gem = (node.recipe?("mongodb::replicaset") or node.recipe?("mongodb::mongos"))
 
 if needs_mongo_gem
