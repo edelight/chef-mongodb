@@ -40,7 +40,7 @@ when "debian"
   end
 
   # package name changes
-  node[:mongodb][:package_name] = 'mongo-10gen-server'
+  node[:mongodb][:package_name] = 'mongodb-10gen'
 
 when "rhel","fedora"
   yum_repository "10gen" do
