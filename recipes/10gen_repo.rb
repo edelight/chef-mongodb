@@ -40,7 +40,7 @@ when "debian"
   end
 
   # package name changes
-  node[:mongodb][:package_name] = 'mongodb-10gen'
+  node.default[:mongodb][:package_name] = 'mongodb-10gen'
 
 when "rhel","fedora"
   yum_repository "10gen" do
@@ -52,8 +52,8 @@ when "rhel","fedora"
 else
     Chef::Log.warn("Adding the #{node['platform']} 10gen repository is not yet not supported by this cookbook")
     if node['platform'] == 'freebsd'
-        node[:mongodb][:package_name] = 'mongodb'
+        node.default[:mongodb][:package_name] = 'mongodb'
     else
-        node[:mongodb][:package_name] = 'mongodb-10gen'
+        node.default[:mongodb][:package_name] = 'mongodb-10gen'
     end
 end
