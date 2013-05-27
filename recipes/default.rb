@@ -19,6 +19,11 @@
 # limitations under the License.
 #
 
+case node[:mongodb][:install_method]
+when '10gen'
+    include_recipe "mongodb::10gen_repo"
+end
+
 package node[:mongodb][:package_name] do
   action :install
 end
