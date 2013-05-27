@@ -31,8 +31,8 @@ end
 # this is a hack to deal with ubuntu install upstart script
 # and because we don't want to maintain more init scripts
 if node['platform'] == 'ubuntu' and node['mongodb']['install_method'] == 'package' then
-    bash 'remove upstart file' do
-        command 'rm /etc/init/mongodb.conf'
+    execute 'remove upstart file' do
+        command 'stop mongodb && rm /etc/init/mongodb.conf'
         action :run
         only_if 'test -f /etc/init/mongodb.conf'
     end
