@@ -55,6 +55,12 @@ when "centos","redhat","fedora","amazon","scientific"
   default[:mongodb][:group] = "mongod"
   default[:mongodb][:init_script_template] = "redhat-mongodb.init.erb"
 
+when "ubuntu"
+  default[:mongodb][:defaults_dir] = "/etc/default"
+  default[:mongodb][:root_group] = "root"
+  default[:mongodb][:package_name] = "mongodb"
+  default[:mongodb][:apt_repo] = "debian-sysvinit"
+
 else
   default[:mongodb][:defaults_dir] = "/etc/default"
   default[:mongodb][:root_group] = "root"
@@ -62,3 +68,6 @@ else
   default[:mongodb][:apt_repo] = "debian-sysvinit"
 
 end
+
+# packaging choice
+default[:mongodb][:install_method] = "package"

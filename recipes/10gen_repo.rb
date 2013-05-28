@@ -39,6 +39,9 @@ when "debian"
     notifies :run, "execute[apt-get update]", :immediately
   end
 
+  # package name changes
+  node.default[:mongodb][:package_name] = 'mongodb-10gen'
+
 when "rhel","fedora"
   yum_repository "10gen" do
     description "10gen RPM Repository"
@@ -48,4 +51,9 @@ when "rhel","fedora"
 
 else
     Chef::Log.warn("Adding the #{node['platform']} 10gen repository is not yet not supported by this cookbook")
+    if node['platform'] == 'freebsd'
+        node.default[:mongodb][:package_name] = 'mongodb'
+    else
+        node.default[:mongodb][:package_name] = 'mongodb-10gen'
+    end
 end

@@ -19,9 +19,25 @@
 # limitations under the License.
 #
 
+case node[:mongodb][:install_method]
+when '10gen'
+    include_recipe "mongodb::10gen_repo"
+end
+
 package node[:mongodb][:package_name] do
   action :install
 end
+
+# this is a hack to deal with ubuntu install upstart script
+# and because we don't want to maintain more init scripts
+if node['platform'] == 'ubuntu' and node['mongodb']['install_method'] == 'package' then
+    execute 'remove upstart file' do
+        command 'stop mongodb && rm /etc/init/mongodb.conf'
+        action :run
+        only_if 'test -f /etc/init/mongodb.conf'
+    end
+end
+# end hack
 
 needs_mongo_gem = (node.recipe?("mongodb::replicaset") or node.recipe?("mongodb::mongos"))
 
