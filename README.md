@@ -38,6 +38,7 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicatset
+* `mongodb[:arbiter]` - Boolean indicating if this replicaset member should be an [arbiter](http://docs.mongodb.org/manual/core/replication/#replica-set-arbiters).
 
 # USAGE:
 
@@ -88,6 +89,8 @@ The result is a new system service with
 Add `mongodb::replicaset` to the node's run_list. Also choose a name for your
 replicaset cluster and set the value of `node[:mongodb][:cluster_name]` for each
 member to this name.
+
+If you want the node to be an arbiter, set `node[:mongodb][:arbiter]` to be `true`.
 
 ## Sharding
 
