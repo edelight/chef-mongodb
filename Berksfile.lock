@@ -1,0 +1,16 @@
+{
+  "sha": "6ef716553a56267bb3eb743ece483db8aa94cecb",
+  "sources": {
+    "mongodb": {
+      "locked_version": "0.12.0",
+      "constraint": "= 0.12.0",
+      "path": "."
+    },
+    "apt": {
+      "locked_version": "1.6.1"
+    },
+    "yum": {
+      "locked_version": "2.0.6"
+    }
+  }
+}
