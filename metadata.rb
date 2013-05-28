@@ -67,3 +67,8 @@ attribute "mongodb/bind_ip",
   :display_name => "Bind address",
   :description => "MongoDB instance bind address",
   :default => nil
+
+attribute "mongodb/package_version",
+  :display_name => "MongoDB package version",
+  :description => "Version of the MongoDB package to install",
+  :default => nil

@@ -38,6 +38,7 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicatset
+* `mongodb[:package_version]` - Version of the MongoDB package to install, default is nil
 
 # USAGE:
 
