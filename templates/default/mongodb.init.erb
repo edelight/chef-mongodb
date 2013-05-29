@@ -40,6 +40,15 @@ ENABLE_MONGODB=yes
 
 NAME=<%= @provides %>
 
+<% if %w{ ubuntu debian }.include? node.platform -%>
+ulimit -f <%= node.mongodb.ulimit.file_size %>
+ulimit -t <%= node.mongodb.ulimit.cpu_time %>
+ulimit -v <%= node.mongodb.ulimit.virtual_memory %>
+ulimit -n <%= node.mongodb.ulimit.open_files %>
+ulimit -m <%= node.mongodb.ulimit.memory_size %>
+ulimit -u <%= node.mongodb.ulimit.processes %>
+<% end -%>
+
 # Include mongodb defaults if available
 if [ -f /etc/default/$NAME ] ; then
 	. /etc/default/$NAME

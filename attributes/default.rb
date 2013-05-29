@@ -38,6 +38,14 @@ default[:mongodb][:user] = "mongodb"
 default[:mongodb][:group] = "mongodb"
 default[:mongodb][:root_group] = "root"
 
+# http://docs.mongodb.org/manual/reference/ulimit/#recommended-settings
+default[:mongodb][:ulimit][:file_size] = "unlimited"
+default[:mongodb][:ulimit][:cpu_time] = "unlimited"
+default[:mongodb][:ulimit][:virtual_memory] = "unlimited"
+default[:mongodb][:ulimit][:open_files] = 64000
+default[:mongodb][:ulimit][:memory_size] = "unlimited"
+default[:mongodb][:ulimit][:processes] = 32000
+
 default[:mongodb][:init_dir] = "/etc/init.d"
 
 default[:mongodb][:init_script_template] = "mongodb.init.erb"
