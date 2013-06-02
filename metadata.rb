@@ -37,6 +37,7 @@ attribute "mongodb/port",
 attribute "mongodb/client_roles",
   :display_name => "Client Roles",
   :description => "Roles of nodes who need access to the mongodb instance",
+  :type => "array",
   :default => []
 
 attribute "mongodb/cluster_name",
@@ -52,7 +53,8 @@ attribute "mongodb/shard_name",
 attribute "mongodb/sharded_collections",
   :display_name => "Sharded Collections",
   :description => "collections to shard",
-  :default => {}
+  :type => "array",
+  :default => []
 
 attribute "mongodb/replicaset_name",
   :display_name => "Replicaset_name",
