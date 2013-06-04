@@ -31,6 +31,7 @@ if node['cloud'] and
       disk_size node['mongodb']['raid_disk_size']
       disk_type node['mongodb']['raid_ebs_type']
       mount_point node[:mongodb][:raid_mount]
+      snapshots node[:mongodb][:raid_snaps]
       action [ :auto_attach ]
    end
 
