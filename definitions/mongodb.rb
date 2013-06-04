@@ -78,12 +78,12 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   else
     daemon = "/usr/bin/mongos"
     dbpath = nil
-    if node['fqdn'].nil? then
-      configservers = configserver_nodes.collect{|n| "#{n['ipaddress']}:#{n['mongodb']['port']}" }.join(",")
-    else
-      configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
-    end
-#   configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+ #   if node['fqdn'].nil? then
+ #     configservers = configserver_nodes.collect{|n| "#{n['ipaddress']}:#{n['mongodb']['port']}" }.join(",")
+ #   else
+ #     configservers = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+ #   end
+    configservers = configserver_nodes.collect{|n| "#{n['ipaddress']}:#{n['mongodb']['port']}" }.join(",")
   end
 
   if type == "configserver"
