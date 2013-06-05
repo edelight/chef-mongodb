@@ -43,7 +43,7 @@ class Chef::ResourceDefinitionList::MongoDB
       Chef::Log.warn("Could not connect to database: 'localhost:#{node['mongodb']['port']}'")
       return
     end
-    
+
     # Want the node originating the connection to be included in the replicaset
     members << node unless members.any? {|m| m.name == node.name }
     members.sort!{ |x,y| x.name <=> y.name }
@@ -101,7 +101,7 @@ class Chef::ResourceDefinitionList::MongoDB
         config['members'].collect!{ |m| {"_id" => m["_id"], "host" => mapping[m["host"]]} }
         config['version'] += 1
         
-        rs_connection = Mongo::ReplSetConnection.new( *old_members.collect{ |m| m.split(":") })
+        rs_connection = Mongo::ReplSetConnection.new(old_members)
         admin = rs_connection['admin']
         cmd = BSON::OrderedHash.new
         cmd['replSetReconfig'] = config
@@ -130,8 +130,8 @@ class Chef::ResourceDefinitionList::MongoDB
           max_id += 1
           config['members'] << {"_id" => max_id, "host" => m}
         end
-        
-        rs_connection = Mongo::ReplSetConnection.new( *old_members.collect{ |m| m.split(":") })
+
+        rs_connection = Mongo::ReplSetConnection.new(old_members)
         admin = rs_connection['admin']
         
         cmd = BSON::OrderedHash.new
