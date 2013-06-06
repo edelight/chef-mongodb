@@ -183,7 +183,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       notifies :create, "ruby_block[config_replicaset]"
     end
     if type == "mongos"
-      notifies :create, "ruby_block[config_sharding]", :immediately
+      notifies :create, "ruby_block[config_sharding]", :delayed
     end
   end
   
@@ -224,6 +224,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
        ruby_block "config_sharding" do
 	 block do
 	   if type == "mongos"
+             Chef::Log.info("Waiting 30s for DB to start...")
+             sleep(30)
              Chef::Log.info("Adding shard nodes...")
 	     MongoDB.configure_shards(node, shard_nodes)
              if not node['mongodb']['sharded_collections'].nil?
