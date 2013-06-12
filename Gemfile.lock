@@ -1,24 +1,4 @@
 GIT
-  remote: git://github.com/RiotGames/berkshelf.git
-  revision: 4812c3dd100b0ff0b558637551d7b50bc9f53b67
-  specs:
-    berkshelf (2.0.0.beta)
-      activesupport (>= 3.2.0)
-      addressable (~> 2.3.4)
-      celluloid (>= 0.14.0)
-      chozo (>= 0.6.1)
-      faraday (>= 0.8.5)
-      hashie (>= 2.0.2)
-      minitar (~> 0.5.4)
-      mixlib-config (~> 1.1)
-      mixlib-shellout (~> 1.1)
-      retryable (~> 1.3.3)
-      ridley (~> 0.12.1)
-      solve (>= 0.4.4)
-      test-kitchen (>= 1.0.0.alpha6)
-      thor (~> 0.18.0)
-
-GIT
   remote: git://github.com/opscode/kitchen-vagrant.git
   revision: 4742374f7fb0d04cb3bf35be26cf54d152610b33
   specs:
@@ -27,7 +7,7 @@ GIT
 
 GIT
   remote: git://github.com/opscode/test-kitchen.git
-  revision: 6e5041194ca5759dacbf74813fb4a37b3b579736
+  revision: 77a76c687770b14843f3846bb8e5de3cb240ec59
   specs:
     test-kitchen (1.0.0.dev)
       celluloid
@@ -48,9 +28,25 @@ GEM
     akami (1.2.0)
       gyoku (>= 0.4.0)
       nokogiri (>= 1.4.0)
-    builder (3.2.0)
-    celluloid (0.14.0)
+    berkshelf (2.0.3)
+      activesupport (>= 3.2.0)
+      addressable (~> 2.3.4)
+      celluloid (>= 0.14.0)
+      chozo (>= 0.6.1)
+      faraday (>= 0.8.5)
+      hashie (>= 2.0.2)
+      minitar (~> 0.5.4)
+      retryable (~> 1.3.3)
+      ridley (~> 1.0.2)
+      solve (>= 0.4.4)
+      test-kitchen (>= 1.0.0.alpha7)
+      thor (~> 0.18.0)
+    builder (3.2.2)
+    celluloid (0.14.1)
       timers (>= 1.0.0)
+    celluloid-io (0.14.1)
+      celluloid (>= 0.14.1)
+      nio4r (>= 0.4.5)
     chozo (0.6.1)
       activesupport (>= 3.2.0)
       hashie (>= 2.0.2)
@@ -59,7 +55,7 @@ GEM
     erubis (2.7.0)
     faraday (0.8.7)
       multipart-post (~> 1.1)
-    ffi (1.8.1)
+    ffi (1.9.0)
     gssapi (1.0.3)
       ffi (>= 1.0.1)
     gyoku (1.0.0)
@@ -77,16 +73,16 @@ GEM
     minitar (0.5.4)
     mixlib-authentication (1.3.0)
       mixlib-log
-    mixlib-config (1.1.2)
     mixlib-log (1.6.0)
     mixlib-shellout (1.1.0)
-    multi_json (1.7.4)
+    multi_json (1.7.6)
     multipart-post (1.2.0)
     net-http-persistent (2.8)
     net-scp (1.1.1)
       net-ssh (>= 2.6.5)
     net-ssh (2.6.7)
-    nokogiri (1.5.9)
+    nio4r (0.4.6)
+    nokogiri (1.5.10)
     nori (1.1.5)
     pry (0.9.12.2)
       coderay (~> 1.0.5)
@@ -94,23 +90,22 @@ GEM
       slop (~> 3.4)
     rack (1.5.2)
     retryable (1.3.3)
-    ridley (0.12.3)
+    ridley (1.0.2)
       addressable
       celluloid (~> 0.14.0)
+      celluloid-io (~> 0.14.0)
       chozo (>= 0.6.0)
       erubis
       faraday (>= 0.8.4)
+      hashie (>= 2.0.2)
       mixlib-authentication (>= 1.3.0)
-      mixlib-config (>= 1.1.0)
-      mixlib-log (>= 1.3.0)
-      mixlib-shellout (>= 1.1.0)
       net-http-persistent (>= 2.8)
       net-ssh
       retryable
       solve (>= 0.4.4)
       winrm (~> 1.1.0)
     rubyntlm (0.1.1)
-    safe_yaml (0.9.1)
+    safe_yaml (0.9.3)
     savon (0.9.5)
       akami (~> 1.0)
       builder (>= 2.1.2)
@@ -140,6 +135,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  berkshelf!
+  berkshelf (>= 2)
   kitchen-vagrant!
   test-kitchen!
