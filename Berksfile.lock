@@ -1,17 +1,14 @@
 {
-  "sha": "6ef716553a56267bb3eb743ece483db8aa94cecb",
   "sources": {
     "mongodb": {
-      "locked_version": "0.12.0",
-      "constraint": "~> 0.12.0",
       "path": "."
     },
     "apt": {
-      "locked_version": "1.4.8",
-      "constraint": "~> 1.4.4"
+      "locked_version": "1.8.4",
+      "constraint": ">= 1.8.2"
     },
     "yum": {
-      "locked_version": "2.2.2"
+      "locked_version": "2.1.0"
     }
   }
 }
