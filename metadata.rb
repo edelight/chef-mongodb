@@ -3,7 +3,7 @@ maintainer        "edelight GmbH"
 maintainer_email  "markus.korn@edelight.de"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.12"
+version           "0.14.2"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -12,12 +12,24 @@ recipe "mongodb::configserver", "Installs and configures a configserver for mong
 recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 
-depends "apt", ">= 1.8.2"
+depends "apt"
 depends "yum"
+depends "firewall"
+depends "build-essential"
 
 %w{ ubuntu debian freebsd centos redhat fedora amazon scientific}.each do |os|
   supports os
 end
+
+attribute "mongodb/auth",
+  :display_name => "Auth",
+  :description => "Enable or disable auth",
+  :default => "false"
+
+attribute "mongodb/keyfile",
+  :display_name => "keyFile secret",
+  :description => "Secret string for keyFile replication",
+  :default => nil
 
 attribute "mongodb/dbpath",
   :display_name => "dbpath",

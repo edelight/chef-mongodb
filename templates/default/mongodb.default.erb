@@ -12,6 +12,7 @@ DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 <%= @port ? "DAEMON_OPTS=\"$DAEMON_OPTS --port #{@port}\"" : "" %>
 <%= @dbpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --dbpath #{@dbpath}\"" : "" %>
 <%= @logpath ? "DAEMON_OPTS=\"$DAEMON_OPTS --logpath #{@logpath}\"" : "" %>
+<%= @auth ? "DAEMON_OPTS=\"$DAEMON_OPTS --auth\"" : "" %>
 
 <%= @config ? "DAEMON_OPTS=\"$DAEMON_OPTS --config #{@config}\"" : "" %>
 <%= @configdb ? "DAEMON_OPTS=\"$DAEMON_OPTS --configdb #{@configdb}\"" : "" %>
@@ -23,6 +24,7 @@ DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 
 <% if @replicaset_name %>
 DAEMON_OPTS="$DAEMON_OPTS --replSet <%= @replicaset_name %>"
+<%= @keyfile ? "DAEMON_OPTS=\"$DAEMON_OPTS --keyFile #{@keyfile}\"" : "" %>
 <% end %>
 
 <% if @enable_rest %>

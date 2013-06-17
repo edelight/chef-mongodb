@@ -24,15 +24,8 @@ package node[:mongodb][:package_name] do
   version node[:mongodb][:package_version]
 end
 
-needs_mongo_gem = (node.recipe?("mongodb::replicaset") or node.recipe?("mongodb::mongos"))
-
-if needs_mongo_gem
-  # install the mongo ruby gem at compile time to make it globally available
-  gem_package 'mongo' do
-    action :nothing
-  end.run_action(:install)
-  Gem.clear_paths
-end
+chef_gem 'bson_ext'
+chef_gem 'mongo'
 
 if node.recipe?("mongodb::default") or node.recipe?("mongodb")
   # configure default instance
@@ -44,5 +37,6 @@ if node.recipe?("mongodb::default") or node.recipe?("mongodb")
     dbpath       node['mongodb']['dbpath']
     enable_rest  node['mongodb']['enable_rest']
     smallfiles   node['mongodb']['smallfiles']
+    auth         node['mongodb']['auth']
   end
 end

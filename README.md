@@ -26,8 +26,17 @@ of a sharded setup.
 
 For examples see the USAGE section below.
 
+# LWRP:
+
+This cookbook defines the LWRP `mongodb_user` to manage users and authentication
+in mongodb.
+
+For examples see the USAGE section below.
+
 # ATTRIBUTES:
 
+* `mongodb[:auth]` - Enable or disable auth
+* `mongodb[:keyfile]` - keyFile contents for auth w/ replicasets
 * `mongodb[:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
 * `mongodb[:logpath]` - Path for the logfiles, default is "/var/log/mongodb"
 * `mongodb[:port]` - Port the mongod listens on, default is 27017
@@ -138,6 +147,57 @@ The setup is not much different to the one described above. All you have to do i
 nodes which should be in the same replicaset have the same shard name.
 
 For more details, you can find a [tutorial for Sharding + Replication](https://github.com/edelight/chef-mongodb/wiki/MongoDB%3A-Replication%2BSharding) in the wiki.
+
+## Authentication LWRP
+
+To enable authentication on a database, you need to enable authentication by
+setting the `auth` attribute to true
+
+```json
+{
+  "mongodb": {
+    "auth": true
+  }
+}
+```
+
+If you are using replicasets, you only need to define the keyFile secret string.
+
+```json
+{
+  "mongodb": {
+    "keyfile": "5UJ1aZngn9OM/YN0IsiivhQUmGY..."
+  }
+}
+```
+
+The keyFile contents is arbitrary, but a long string is suggested. `openssl` can be used to generate a good string:
+
+```bash
+$ openssl rand -base64 753
+```
+
+```ruby
+require 'openssl'
+
+default['mongodb']['keyfile'] = ::OpenSSL::Random.random_bytes(753).gsub(/\W/, '')
+```
+
+Once authentication has been enabled, you can then define users simply by including
+`mongodb` in the run list and defining your user.
+
+```ruby
+mongodb_user "someguy" do
+  password "n0ts3cur3"
+  database "gbs_for_dbs"
+end
+```
+
+Actions available:
+
+* `:add` - default
+* `:delete`
+* `:update`
 
 # LICENSE and AUTHOR:
 

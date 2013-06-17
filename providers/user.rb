@@ -1,8 +1,9 @@
 #
 # Cookbook Name:: mongodb
-# Recipe:: replicatset
+# Provider:: user 
 #
-# Copyright 2011, edelight GmbH
+# Authors:
+#       BK Box <bk@theboxes.org>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,18 +18,16 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
-
-# if we are configuring a shard as a replicaset we do nothing in this recipe
-if !node.recipe?("mongodb::shard")
-  mongodb_instance "mongodb" do
-    mongodb_type "mongod"
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-    replicaset   node
-    enable_rest  node['mongodb']['enable_rest']
-    smallfiles   node['mongodb']['smallfiles']
-    auth         node['mongodb']['auth']
+action :add do
+  unless Chef::MongoDB.user_exists?(node, new_resource.name, new_resource.password, new_resource.database)
+    Chef::MongoDB.configure_user(node, new_resource.name, new_resource.password, new_resource.database)
   end
+end
+
+action :delete do
+  Chef::MongoDB.configure_user(node, new_resource.name, new_resource.password, new_resource.database, :delete => true)
+end
+
+action :update do
+  Chef::MongoDB.configure_user(node, new_resource.name, new_resource.password, new_resource.database)
 end

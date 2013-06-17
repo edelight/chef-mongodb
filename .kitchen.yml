@@ -6,32 +6,54 @@ driver_config:
 platforms:
 - name: ubuntu-12.04
   driver_config:
-    box: opscode-ubuntu-12.04
-    box_url: https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box
+    box: vagrant-ubuntu-12.04
+    box_url: http://files.vagrantup.com/precise64.box
+    require_chef_omnibus: true
   run_list:
-  - "recipe[apt]"
+  - recipe[apt]
 - name: ubuntu-10.04
   driver_config:
-    box: opscode-ubuntu-10.04
-    box_url: https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-10.04_provisionerless.box
+    box: vagrant-ubuntu-10.04
+    box_url: http://files.vagrantup.com/lucid64.box
+    require_chef_omnibus: true
   run_list:
-  - "recipe[apt]"
-- name: centos-6.4
-  driver_config:
-    box: opscode-centos-6.4
-    box_url: https://opscode-vm.s3.amazonaws.com/vagrant/opscode_centos-6.4_provisionerless.box
-  run_list:
-  - "recipe[yum]"
-- name: centos-5.9
-  driver_config:
-    box: opscode-centos-5.9
-    box_url: https://opscode-vm.s3.amazonaws.com/vagrant/opscode_centos-5.9_provisionerless.box
-  run_list:
-  - "recipe[yum]"
+  - recipe[apt]
+# - name: centos-6.3
+#   driver_config:
+#     box: opscode-centos-6.3
+#     box_url: http://opscode-vm.s3.amazonaws.com/vagrant/opscode_centos-6.3_chef-11.2.0.box
+#   run_list:
+#   - recipe[yum]
+# - name: centos-5.8
+#   driver_config:
+#     box: opscode-centos-5.8
+#     box_url: http://opscode-vm.s3.amazonaws.com/vagrant/opscode_centos-5.8_chef-11.2.0.box
+#   run_list:
+#   - recipe[yum]
 
 suites:
-- name: default
+- name: mongo
   run_list:
-  - "recipe[mongodb::10gen_repo]"
-  - "recipe[mongodb]"
-  attributes: {}
+  - recipe[build-essential]
+  - recipe[mongodb::10gen_repo]
+  - recipe[mongodb]
+  - recipe[mongo_test]
+  attributes:
+    build_essential:
+      compiletime: true
+    mongodb:
+      auth: true
+- name: replicaset
+  run_list:
+  - recipe[build-essential]
+  - recipe[mongodb::10gen_repo]
+  - recipe[mongodb]
+  - recipe[mongodb::replicaset]
+  - recipe[mongo_test]
+  attributes:
+    mongodb:
+      cluster_name: clustrname
+      replicaset_name: replset
+      replicaset_members:
+      - 127.0.0.1
+      auth: true
