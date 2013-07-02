@@ -85,8 +85,8 @@ port = <%= @mongodb[:port] %>
 # # in replica set configuration, specify the name of the replica set
 #
 <% if @mongodb[:replicaset_name] %>
-# replSet = setname
-<% else %>
 replSet = <%= @mongodb[:replicaset_name] %>
+<% else %>
+# replSet = setname
 <% end %>
 

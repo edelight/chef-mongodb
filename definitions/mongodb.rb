@@ -23,25 +23,25 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     :bind_ip => nil, :port => 27017 , :logpath => "/var/log/mongodb",
     :dbpath => "/data", :configserver => [],
     :replicaset => nil, :enable_rest => false, :smallfiles => false, :notifies => [] do
-    
+
   include_recipe "mongodb::default"
-  
+
   name = params[:name]
   type = params[:mongodb_type]
   service_action = params[:action]
   service_notifies = params[:notifies]
-  
+
   bind_ip = params[:bind_ip]
   port = params[:port]
 
   logpath = params[:logpath]
   logfile = "#{logpath}/#{name}.log"
-  
+
   dbpath = params[:dbpath]
-  
-  configfile = node['mongodb']['configfile']
+
+  configfile = if node['mongodb']['configfile'].nil? then "/etc/mongodb.conf" else node['mongodb']['configfile'] end
   configserver_nodes = params[:configserver]
-  
+
   replicaset = params[:replicaset]
 
   nojournal = node['mongodb']['nojournal']
@@ -84,6 +84,20 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # default file
+  if node['mongodb']['use_configfile']
+    template configfile do
+      action :create
+      cookbook node['mongodb']['template_cookbook']
+      source "mongodb.conf.erb"
+      group node['mongodb']['root_group']
+      owner "root"
+      mode "0644"
+      variables(
+        "mongodb" => node[:mongodb]
+      )
+      notifies :restart, "service[#{name}]"
+    end
+  end
   template "#{node['mongodb']['defaults_dir']}/#{name}" do
     action :create
     cookbook node['mongodb']['template_cookbook']
@@ -105,11 +119,12 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "shardsrv" => false,  #type == "shard", dito.
       "nojournal" => nojournal,
       "enable_rest" => params[:enable_rest],
-      "smallfiles" => params[:smallfiles]
+      "smallfiles" => params[:smallfiles],
+      "use_configfile" => node[:mongodb][:use_configfile]
     )
     notifies :restart, "service[#{name}]"
   end
-  
+
   # log dir [make sure it exists]
   directory logpath do
     owner node[:mongodb][:user]
@@ -138,7 +153,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     group node['mongodb']['root_group']
     owner "root"
     mode "0755"
-    variables :provides => name
+    variables({ :provides => name, :configfile => configfile })
     notifies :restart, "service[#{name}]"
   end
   
