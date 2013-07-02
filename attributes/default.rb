@@ -76,3 +76,11 @@ end
 default[:mongodb][:package_version] = nil
 default[:mongodb][:nojournal] = false
 default[:mongodb][:template_cookbook] = "mongodb"
+
+# missing options from config file
+default[:mongodb][:use_configfile] = false
+default[:mongodb][:logappend] = true
+default[:mongodb][:cpu] = true
+default[:mongodb][:noauth] = true
+default[:mongodb][:auth] = true
+

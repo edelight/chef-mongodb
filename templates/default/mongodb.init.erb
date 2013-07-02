@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 ### BEGIN INIT INFO
 # Provides:          <%= @provides %>
@@ -34,7 +34,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC=database
 DAEMON=/usr/bin/mongod
-DAEMON_OPTS="--config /etc/mongodb.conf"
+DAEMON_OPTS="--config <%= @configfile %>"
 
 ENABLE_MONGODB=yes
 

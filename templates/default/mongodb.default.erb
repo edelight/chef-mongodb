@@ -6,6 +6,7 @@ NAME="<%= @name %>"
 
 DAEMON_OPTS=""
 
+<% unless @use_configfile -%>
 <% if @bind_ip -%>
 DAEMON_OPTS="$DAEMON_OPTS --bind_ip <%= @bind_ip %>"
 <% end -%>
@@ -37,3 +38,7 @@ DAEMON_OPTS="$DAEMON_OPTS --smallfiles"
 DAEMON_OPTS="$DAEMON_OPTS --fork"
 DBPATH="<%= @dbpath %>"
 <% end -%>
+<% else %>
+<%= @config ? "DAEMON_OPTS=\"$DAEMON_OPTS --config #{@config}\"" : "" %>
+<% end -%>
+
