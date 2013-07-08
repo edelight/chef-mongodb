@@ -39,7 +39,8 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
 
   dbpath = params[:dbpath]
 
-  configfile = if node['mongodb']['configfile'].nil? then "/etc/mongodb.conf" else node['mongodb']['configfile'] end
+  configfile = node[:mongodb][:configfile]
+
   configserver_nodes = params[:configserver]
 
   replicaset = params[:replicaset]

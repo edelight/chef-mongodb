@@ -21,7 +21,8 @@ default[:mongodb][:dbpath] = "/var/lib/mongodb"
 default[:mongodb][:logpath] = "/var/log/mongodb"
 default[:mongodb][:bind_ip] = nil
 default[:mongodb][:port] = 27017
-default[:mongodb][:configfile] = nil
+default[:mongodb][:use_configfile] = false
+default[:mongodb][:configfile] = "/etc/mongodb.conf"
 
 # cluster identifier
 default[:mongodb][:client_roles] = []
@@ -76,11 +77,3 @@ end
 default[:mongodb][:package_version] = nil
 default[:mongodb][:nojournal] = false
 default[:mongodb][:template_cookbook] = "mongodb"
-
-# missing options from config file
-default[:mongodb][:use_configfile] = false
-default[:mongodb][:logappend] = true
-default[:mongodb][:cpu] = true
-default[:mongodb][:noauth] = true
-default[:mongodb][:auth] = true
-
