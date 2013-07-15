@@ -22,6 +22,7 @@
 include_recipe "mongodb"
 
 service "mongodb" do
+  only_if 'test -f /etc/init.d/mongodb'
   action [:disable, :stop]
 end
 
