@@ -10,8 +10,9 @@ recipe "mongodb::mongos", "Installs and configures a mongos which can be used in
 recipe "mongodb::configserver", "Installs and configures a configserver for mongodb sharding"
 recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
+recipe "mongodb::backup", "Installs and configures mongodb cluster backup software"
 
-%w( apt aws_ebs_disk aws ).each do |cookbook|
+%w( apt aws_ebs_disk aws tealium_bongo ).each do |cookbook|
   depends cookbook
 end
 

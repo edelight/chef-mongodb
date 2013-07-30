@@ -1,0 +1,503 @@
+#!/usr/bin/env python
+
+desc = """
+
+MongoDB sharded cluster backups.
+
+"""
+
+from bongo.mongo import BongoMongo
+from bongo.zk import BongoZk
+from bongo.aws import BongoAws
+import yaml
+import logging
+from logging.handlers import SysLogHandler
+import sys
+import traceback
+
+
+s3bucket = 'ops.tlium.com'
+s3prefix = 'backups'
+
+
+class BackupLogFilter(logging.Filter):
+   def __init__(self, *allowed):
+      self.allowed = [logging.Filter(name) for name in allowed]
+
+   def filter(self, record):
+      return any(f.filter(record) for f in self.allowed)
+
+
+class BackupError:
+   pass
+
+
+class BackupAbort(Exception):
+   def __init__(self, bz, msg):
+      try:
+         bz.abort(msg)
+      except:
+         pass
+      logging.critical(msg)
+      raise SystemExit(1)
+
+
+class BackupEvents:
+   BackupsComplete = 'mongodb_mongos_server/backups_complete'
+   ConfigServerBackup = 'mongodb_config_server/configdb_backup'
+   ConfigServerShutdown = 'mongodb_config_server/shutdown'
+   ConfigServerStarted = 'mongodb_config_server/started'
+   BalancerStopped = 'mongodb_mongos_server/balancer_stopped'
+   BalancerStarted = 'mongodb_mongos_server/balancer_started'
+
+
+event = BackupEvents()
+
+def parse_args():
+
+   import argparse
+
+   gargle = argparse.ArgumentParser(prog = "bongo", description=desc,
+	       usage='%(prog)s [options] <value>',
+	       formatter_class = argparse.RawDescriptionHelpFormatter)
+
+   gargle.add_argument('--zkconfig', dest='zkconfig', metavar="<zk_config_file>",
+		      help='zookeeper server list file (default: /etc/zookeeper/server_list.yml)',
+		      default='/etc/zookeeper/server_list.yml')
+
+   gargle.add_argument('--zkroot', dest='zkroot', metavar="<zk_root_path>",
+		      help='zookeeper root path - The env arg will be appended to this. (default: /backup/mongodb_cluster)',
+		      default='/backup/mongodb_cluster')
+
+   gargle.add_argument('--env', dest='env', metavar="<environment>",
+		      help='production, qa, demo, etc. (default: development)',
+		      default='development')
+
+   gargle.add_argument('--verbose', action='store_true',
+		      help='log to stderr in addition to syslog (default: False)')
+
+   return gargle.parse_args()
+
+
+
+def get_local_raid_devs():
+
+   import subprocess
+
+   cmd = "/bin/df | /bin/grep '/data' | /usr/bin/awk '{print $1}'"
+
+   data_md = subprocess.check_output(cmd, shell=True).rstrip('\n')
+
+   cmd = "/sbin/mdadm -D %s | /bin/grep active | /usr/bin/awk '{print $7}'" \
+         % data_md
+
+   devs = subprocess.check_output(cmd, shell=True)
+
+   return [d.replace('xvd','sd') for d in devs.split('\n')]
+
+
+def snapshot_ebs_raid(aws, snapshot_name, snapshot_description):
+
+   try:
+
+      local_devs = get_local_raid_devs()
+
+      vols = aws.get_ebs_vols(local_devs)
+
+      snaps = []
+
+      # Snap each volume id in ebs_vols
+      for vol in vols:
+
+         desc = "%s - %s" % (snapshot_description, vol['dev'])
+
+         try:
+
+            snap_id = aws.create_snapshot(vol['id'], snapshot_name, desc)
+            snaps.append(snap_id)
+
+         except BongoAws.BongoAwsException as e:
+            raise BackupError("Error creating snapshot of EBS volume %s: %s"
+                              % (ebs, e))
+      
+      return snaps
+
+   except BongoAws.BongoAwsException as e:
+      raise BackupError("Error creating EBS snapshots: %s" % e)
+
+
+def mongos_controller(db, zk_root, zk_servers):
+   """
+   - get my lock & join the party (done by BongoZk)
+   - get list of shards... wait until party size = shard count + 
+     1 for config server + 1 for myself
+   - stop the balancer
+   - wait for config server backup to complete
+   - wait until shard backups are finished
+   - wait for a config server to startup
+   - wait until everyone else leaves the party (party size = 1)
+   - confirm that I'm still at the party... all by myself... again...
+     (but I'm not bitter)
+   - start the balancer
+   - leave the party and unlock (done by BongoZk)
+   """
+
+   ignore_balancer = False
+
+   def my_abort(msg=None):
+      logging.critical("mongos_controller: abort event detected: %s" % msg)
+
+      if ignore_balancer:
+         logging.critical("mongos_controller: ignoring balancer status")
+      else:
+         logging.critical("mongos_controller: attempting balancer restart")
+         db.start_balancer()
+
+      logging.critical("mongos_controller: exiting...")
+      raise SystemExit(1)
+
+   try:
+
+      from time import sleep
+
+      bz = BongoZk(zk_root,
+                   'mongodb_mongos_server',
+                   servers = zk_servers, 
+                   hour=True)
+
+      bz.watch4abort(my_abort)
+
+      # 1 server per shard + 1 config server + 1 mongos server = how big
+      # the party should get
+      party_capacity = len(db.shards) + 2 
+
+      # can only wait so long for the party to rock... check every 10 secs
+      # for 5 minutes which is 300 secs or 30 loops with a 10 sec sleep
+      patience = 30
+
+      logging.info("mongos_controller: waiting for the party to rock")
+      while bz.party_size() != party_capacity:
+         if patience:
+            patience -= 1
+         else:
+            raise BackupError("took too long (5+ mins) for all the backup "
+                              "servers to get started")
+         sleep(10)
+
+      # if we get here, we can assume everybody showed up
+      logging.info("mongos_controller: party is rocking (size = %d)"
+                   % bz.party_size())
+
+      # cluster balancer fun:  if the balancer is already stopped, we want
+      # to leave it that way - it might be off for a good reason!
+
+      if db.balancer_enabled():
+         ignore_balancer = False
+         logging.info("mongos_controller: stopping balancer")
+         db.stop_balancer()
+      else:
+         ignore_balancer = True
+
+      bz.notify(event.BalancerStopped)
+
+      for shard in db.shards:
+         logging.info("mongos_controller: waiting for %s backup to complete"
+                      % shard)
+         bz.wait4event("mongodb_shard_server/%s" % shard)
+
+      # config db and all the shards are backed up at this point, in theory
+
+      bz.notify(event.BackupsComplete)
+
+      logging.info("mongos_controller: waiting for config server db startup")
+      bz.wait4event(event.ConfigServerStarted)
+
+      patience = 30
+
+      logging.info("mongos_controller: waiting for the party to end")
+      while bz.party_size() > 1:
+         if patience:
+            patience = patience - 1
+         else:
+            raise BackupError("took too long (5+ mins) for all the backup "
+                              "servers to leave the party")
+         sleep(10)
+
+      if not ignore_balancer:
+         logging.info("mongos_controller: starting balancer")
+         db.start_balancer()
+      else:
+         log.warning("leaving cluster balancer disabled (as I found it)")
+
+      bz.notify(event.BalancerStarted)
+
+      logging.info("mongos_controller: done")
+      bz.stop()
+
+   except BongoZk.BongoZkServerTypeExists:
+      db.disconnect()
+      logging.info("apparently another mongos server "
+                   "is already handling the backup process - exiting...") 
+      raise SystemExit(0) 
+   except BongoZk.BongoZkException as e:
+      raise BackupAbort(bz,
+                        "mongos_controller: aborting with "
+                        "ZooKeeper-related error: %s" % e)
+   except BongoMongo.BongoMongoException as e:
+      raise BackupAbort(bz,
+                        "mongos_controller: aborting with "
+                        "MongoDB-related error: %s" % e)
+   except BackupError as e:
+      raise BackupAbort(bz, "mongos_controller: aborting: %s" % e)
+   except Exception as e:
+      traceback.print_exc(file=sys.stderr)
+      raise BackupAbort(bz, "mongos_controller: aborting with uncaught "
+                            "exception: %s" % e)
+   
+
+
+def config_server_controller(db, zk_root, zk_servers, env):
+   """
+   - get my lock & join the party (done by BongoZk)
+   - wait until the balancer is stopped
+   - shutdown my DB process
+   - dump my config DB
+   - move dump file to S3
+   - put S3 info in ZK (notifies that we're done w/ backup)
+   - wait until all the shards are backed up.
+   - restart my DB process
+   - leave the party and unlock (done by BongoZk)
+   """
+
+   def my_abort(msg=None):
+      logging.critical("config_server_controller: abort event detected: %s" % msg)
+
+      if db.stopped:
+         logging.critical("config_server_controller: attempting db startup")
+         db.startup()
+
+      logging.critical("config_server_controller: exiting...")
+      raise SystemExit(1)
+
+   try:
+      bz = BongoZk(zk_root,
+                   'mongodb_config_server',
+                   servers = zk_servers, 
+                   hour=True)
+
+      bz.watch4abort(my_abort)
+
+      aws = BongoAws()
+
+      logging.info("config_server_controller: waiting for balancer to be stopped")
+      bz.wait4event(event.BalancerStopped)
+
+      logging.info("config_server_controller: shutting down my mongod")
+      db.shutdown()
+
+      bz.notify(event.ConfigServerShutdown)
+
+      # dump config db 
+      dumpfile = "/tmp/mongodb_configdb_backup_%s-%s.tgz" \
+                 % (bz.datestamp, bz.timestamp)
+      db.dump('config', dumpfile)
+
+      # Store config db backup in S3
+      key = "%s/%s/mongodb/config_server/%s-%s" % (s3prefix, env,
+                                                   bz.datestamp, bz.timestamp)
+      logging.info("config_server_controller: storing backup on S3: "
+                   "bucket = %s, key = %s" % (s3bucket, key))
+      aws.write_file_to_s3(s3bucket, key, dumpfile)
+
+      # Put S3 info in ZK (notifies shard servers that config is backed up
+      value = str({'bucket':s3bucket, 'key':key})
+      bz.notify(event.ConfigServerBackup, value)
+
+      logging.info("config_server_controller: completed my backup")
+      logging.info("config_server_controller: waiting for all backups to complete")
+      bz.wait4event(event.BackupsComplete)
+
+      logging.info("config_server_controller: starting my mongod")
+      db.startup()
+
+      bz.notify(event.ConfigServerStarted)
+
+      logging.info("config_server_controller: done")
+      bz.stop()
+
+   except BongoZk.BongoZkServerTypeExists:
+      db.disconnect()
+      logging.info("apparently another config server "
+                   "is already handling the backup process - exiting...") 
+      raise SystemExit(0) 
+   except BongoZk.BongoZkException as e:
+      raise BackupAbort(bz,
+                        "config_server_controller: aborting with "
+                        "ZooKeeper-related error: %s" % e)
+   except BongoMongo.BongoMongoException as e:
+      raise BackupAbort(bz,
+                        "config_server_controller: aborting with "
+                        "MongoDB-related error: %s" % e)
+   except BongoAws.BongoAwsException as e:
+      raise BackupAbort(bz,
+                        "config_server_controller: aborting with "
+                        "AWS-related error: %s" % e)
+   except BackupError as e:
+      raise BackupAbort(bz, "config_server_controller: aborting: %s" % e)
+   except Exception as e:
+      traceback.print_exc(file=sys.stderr)
+      raise BackupAbort(bz, "config_server_controller: aborting with uncaught "
+                            "exception: %s" % e)
+
+
+def shard_server_controller(db, zk_root, zk_servers, env):
+   """
+   - get my replica-specific lock and join the party (what rep set am I?)
+     (done by BongoZk)
+   - wait until the balancer is stopped
+   - wait until the config server is backed up
+   - freeze status as secondary for, let's say 15 minutes
+   - lock my db
+   - snapshot my raid vols
+   - unlock my db
+   - store list of snaps in ZK
+   - leave the party and unlock (done by BongoZk)
+   """
+
+   def my_abort(msg=None):
+      logging.critical("shard_server_controller: abort event detected: %s" % msg)
+
+      if db.is_locked():
+         logging.critical("shard_server_controller: attempting DB unlock")
+         db.unlock()
+
+      logging.critical("shard_server_controller: exiting...")
+      raise SystemExit(1)
+
+   try:
+
+      replset_name = db.replica_set_name()
+
+      if not replset_name:
+         raise Exception("cannot determine replica set name")
+
+      my_desc = "mongodb_shard_server/%s" % replset_name
+      snap_desc = "%s/mongodb_shard/%s" % (env, replset_name)
+      snap_name = "DB Backup - %s" % replset_name
+
+      bz = BongoZk(zk_root,
+                   my_desc,
+                   servers = zk_servers, 
+                   hour=True)
+
+      bz.watch4abort(my_abort)
+
+      aws = BongoAws()
+
+      logging.info("shard_server_controller: waiting for balancer to be stopped")
+      bz.wait4event(event.BalancerStopped)
+
+      logging.info("shard_server_controller: waiting for config db backup")
+      bz.wait4event(event.ConfigServerBackup)
+
+      db.refuse_nomination(15*60)
+
+      logging.info("shard_server_controller: locking my db against writes")
+      db.lock()
+
+      logging.info("shard_server_controller: creating snapshots of my raid vols")
+      snapshots = snapshot_ebs_raid(aws, snap_name, snap_desc)
+
+      logging.info("shard_server_controller: unlocking my db")
+      db.unlock()
+
+      bz.set_znode4today(str(snapshots))
+
+      logging.info("shard_server_controller: done")
+      bz.stop()
+
+   except BongoZk.BongoZkServerTypeExists:
+      db.disconnect()
+      logging.info("apparently another shard server for %s"
+                   "is already handling the backup process - exiting..." 
+                   % replset_name) 
+      raise SystemExit(0) 
+   except BongoZk.BongoZkException as e:
+      raise BackupAbort(bz,
+                        "shard_server_controller: aborting with "
+                        "ZooKeeper-related error: %s" % e)
+   except BongoMongo.BongoMongoException as e:
+      raise BackupAbort(bz,
+                        "shard_server_controller: aborting with "
+                        "MongoDB-related error: %s" % e)
+   except BongoAws.BongoAwsException as e:
+      raise BackupAbort(bz,
+                        "shard_server_controller: aborting with "
+                        "AWS-related error: %s" % e)
+   except BackupError as e:
+      raise BackupAbort(bz, "shard_server_controller: aborting: %s" % e)
+   except Exception as e:
+      traceback.print_exc(file=sys.stderr)
+      raise BackupAbort(bz, "shard_server_controller: aborting with uncaught "
+                            "exception: %s" % e)
+
+
+def main():
+
+   logging.root.name = 'bongo'
+   logging.root.setLevel(logging.INFO)
+
+   formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+
+   syslog = SysLogHandler(address='/dev/log')
+   syslog.setFormatter(formatter)
+   syslog.setLevel(logging.INFO)
+   syslog.addFilter(BackupLogFilter('bongo'))
+   logging.root.addHandler(syslog)
+
+   args = parse_args()
+
+   if args.verbose:
+      stderr = logging.StreamHandler()
+      stderr.setFormatter(formatter)
+      stderr.setLevel(logging.INFO)
+      logging.root.addHandler(stderr)
+
+   try:
+      yfile = yaml.safe_load(open(args.zkconfig))
+      zk_servers = ','.join("%s:%s" % (s['host'],s['port'])
+                          for s in yfile['zookeepers'])
+   except Exception as e:
+      logging.critical("Error reading ZooKeeper servers from yaml: %s: %s"
+                       % (args.zkconfig, e))
+      raise SystemExit(1)
+
+   zk_root = "%s/%s" % (args.zkroot.rstrip('/'), args.env)
+
+   try:
+
+      db = BongoMongo()
+      
+      if db.is_mongos:
+	 logging.info("I think I'm a Mongos server")
+	 mongos_controller(db, zk_root, zk_servers)
+      elif db.is_config:
+	 logging.info("I think I'm a Config server")
+	 config_server_controller(db, zk_root, zk_servers, args.env)
+      elif not db.is_primary:
+	 logging.info("I think I'm a Shard server")
+	 shard_server_controller(db, zk_root, zk_servers, args.env)
+      else:
+	 logging.info("not a mongos or config or non-primary shard server - "
+                      "exiting...")
+
+      sys.exit(0)
+
+   except Exception as e:
+      logging.critical("Terminating with uncaught exception: %s" % e)
+      traceback.print_exc(file=sys.stderr)
+      raise SystemExit(1)
+
+
+if __name__ == '__main__': main()
+
