@@ -19,20 +19,27 @@
 # limitations under the License.
 #
 
-if node['cloud'] and 
-   node['cloud']['provider'] == 'ec2' and
-   node['mongodb']['raid'] then
+if node[:cloud] and 
+   node[:cloud][:provider] == 'ec2' and
+   node[:mongodb][:raid] then
 
    include_recipe 'aws'
 
    aws_ebs_raid "data_raid" do
-      level node['mongodb']['raid_level']
-      disk_count node['mongodb']['raid_disk_count']
-      disk_size node['mongodb']['raid_disk_size']
-      disk_type node['mongodb']['raid_ebs_type']
+      level node[:mongodb][:raid_level]
+      disk_count node[:mongodb][:raid_disk_count]
+      disk_size node[:mongodb][:raid_disk_size]
+      disk_type node[:mongodb][:raid_ebs_type]
       mount_point node[:mongodb][:raid_mount]
       snapshots node[:mongodb][:raid_snaps]
       action [ :auto_attach ]
+   end
+
+   include_recipe 'tealium_encfs'
+
+   tealium_encfs_mount "db_data" do
+      mount_point node[:mongodb][:data_root]
+      encrypted_mount_point node[:mongodb][:raid_mount]
    end
 
 end
@@ -45,7 +52,7 @@ service "mongodb" do
   action [:disable, :stop]
 end
 
-is_replicated = node.recipes.include?("mongodb::replicaset")
+is_replicated = node[:recipes].include?("mongodb::replicaset")
 
 
 # we are not starting the shard service with the --shardsvr
@@ -53,10 +60,10 @@ is_replicated = node.recipes.include?("mongodb::replicaset")
 # running on, and we are overwriting this port anyway.
 mongodb_instance "mongodb_shard" do
   mongodb_type "shard"
-  port         node['mongodb']['port']
-  dbpath       node['mongodb']['dbpath']
+  port         node[:mongodb][:port]
+  dbpath       node[:mongodb][:dbpath]
   if is_replicated
     replicaset    node
   end
-  enable_rest node['mongodb']['enable_rest']
+  enable_rest node[:mongodb][:enable_rest]
 end
