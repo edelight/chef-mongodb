@@ -16,8 +16,10 @@ import sys
 import traceback
 
 
-s3bucket = 'ops.tlium.com'
-s3prefix = 'backups'
+S3BUCKET = 'ops.tlium.com'
+S3PREFIX = 'backups'
+DATAPATH = '/data'
+CMDMODE = 'BongoCommandMode'
 
 
 class BackupLogFilter(logging.Filter):
@@ -28,7 +30,11 @@ class BackupLogFilter(logging.Filter):
       return any(f.filter(record) for f in self.allowed)
 
 
-class BackupError:
+class BackupError(Exception):
+   pass
+
+
+class BackupsDisabled(Exception):
    pass
 
 
@@ -76,17 +82,47 @@ def parse_args():
    gargle.add_argument('--verbose', action='store_true',
 		      help='log to stderr in addition to syslog (default: False)')
 
+   cmdgroup = gargle.add_mutually_exclusive_group()
+
+   cmdgroup.add_argument('--enable', action='store_true',
+                         help='enable cluster backups (per environment)')
+
+   cmdgroup.add_argument('--disable', dest='disable', metavar="<reason>",
+         help='disable cluster backups (per environment) (default: none)')
+
    return gargle.parse_args()
 
 
-
-def get_local_raid_devs():
+def get_local_mnt_dev(path):
 
    import subprocess
 
-   cmd = "/bin/df | /bin/grep '/data' | /usr/bin/awk '{print $1}'"
+   cmd = "/bin/df | /bin/grep '%s' | /usr/bin/awk '{print $1}'" % path
 
-   data_md = subprocess.check_output(cmd, shell=True).rstrip('\n')
+   dev = subprocess.check_output(cmd, shell=True).rstrip('\n')
+
+   return dev
+
+
+def get_local_uuid(path):
+
+   import subprocess
+
+   dev = get_local_mnt_dev(path)
+
+   cmd = "/sbin/mdadm -D %s | /bin/grep UUID | /usr/bin/awk -F' : ' '{print $2}'" \
+         % dev
+   
+   uuid = subprocess.check_output(cmd, shell=True).rstrip('\n')
+
+   return uuid
+
+
+def get_local_raid_devs(path):
+
+   import subprocess
+
+   data_md = get_local_mnt_dev(path)
 
    cmd = "/sbin/mdadm -D %s | /bin/grep active | /usr/bin/awk '{print $7}'" \
          % data_md
@@ -100,7 +136,9 @@ def snapshot_ebs_raid(aws, snapshot_name, snapshot_description):
 
    try:
 
-      local_devs = get_local_raid_devs()
+      array_uuid = get_local_uuid(DATAPATH)
+
+      local_devs = get_local_raid_devs(DATAPATH)
 
       vols = aws.get_ebs_vols(local_devs)
 
@@ -113,7 +151,8 @@ def snapshot_ebs_raid(aws, snapshot_name, snapshot_description):
 
          try:
 
-            snap_id = aws.create_snapshot(vol['id'], snapshot_name, desc)
+            snap_id = aws.create_snapshot(vol['id'], desc,
+                                          Name=snapshot_name, UUID=array_uuid)
             snaps.append(snap_id)
 
          except BongoAws.BongoAwsException as e:
@@ -124,6 +163,48 @@ def snapshot_ebs_raid(aws, snapshot_name, snapshot_description):
 
    except BongoAws.BongoAwsException as e:
       raise BackupError("Error creating EBS snapshots: %s" % e)
+
+
+def disable_backups(zk_root, zk_servers, reason):
+   """Use BongoZK to set disabled flag."""
+
+   try:
+
+      bz = BongoZk(zk_root,
+                   CMDMODE,
+                   servers = zk_servers)
+
+      bz.disable(reason)
+      bz.stop()
+
+   except BongoZk.BongoZkServerTypeExists:
+      logging.info("Error: apparently someone else is using cmd mode right now.")
+      raise SystemExit(1) 
+   except BongoZk.BongoZkException as e:
+      raise BackupAbort(bz,
+                        "disable_backups: aborting with "
+                        "ZooKeeper-related error: %s" % e)
+
+
+def enable_backups(zk_root, zk_servers):
+   """Use BongoZK to unset disabled flag."""
+
+   try:
+
+      bz = BongoZk(zk_root,
+                   CMDMODE,
+                   servers = zk_servers)
+
+      bz.enable()
+      bz.stop()
+
+   except BongoZk.BongoZkServerTypeExists:
+      logging.info("Error: apparently someone else is using cmd mode right now.")
+      raise SystemExit(1) 
+   except BongoZk.BongoZkException as e:
+      raise BackupAbort(bz,
+                        "enable_backups: aborting with "
+                        "ZooKeeper-related error: %s" % e)
 
 
 def mongos_controller(db, zk_root, zk_servers):
@@ -164,6 +245,9 @@ def mongos_controller(db, zk_root, zk_servers):
                    'mongodb_mongos_server',
                    servers = zk_servers, 
                    hour=True)
+
+      if not bz.is_enabled():
+         raise BackupsDisabled
 
       bz.watch4abort(my_abort)
 
@@ -234,6 +318,8 @@ def mongos_controller(db, zk_root, zk_servers):
       logging.info("mongos_controller: done")
       bz.stop()
 
+   except BackupsDisabled:
+      raise
    except BongoZk.BongoZkServerTypeExists:
       db.disconnect()
       logging.info("apparently another mongos server "
@@ -285,6 +371,9 @@ def config_server_controller(db, zk_root, zk_servers, env):
                    servers = zk_servers, 
                    hour=True)
 
+      if not bz.is_enabled():
+         raise BackupsDisabled
+
       bz.watch4abort(my_abort)
 
       aws = BongoAws()
@@ -303,14 +392,14 @@ def config_server_controller(db, zk_root, zk_servers, env):
       db.dump('config', dumpfile)
 
       # Store config db backup in S3
-      key = "%s/%s/mongodb/config_server/%s-%s" % (s3prefix, env,
+      key = "%s/%s/mongodb/config_server/%s-%s" % (S3PREFIX, env,
                                                    bz.datestamp, bz.timestamp)
       logging.info("config_server_controller: storing backup on S3: "
-                   "bucket = %s, key = %s" % (s3bucket, key))
-      aws.write_file_to_s3(s3bucket, key, dumpfile)
+                   "bucket = %s, key = %s" % (S3BUCKET, key))
+      aws.write_file_to_s3(S3BUCKET, key, dumpfile)
 
       # Put S3 info in ZK (notifies shard servers that config is backed up
-      value = str({'bucket':s3bucket, 'key':key})
+      value = str({'bucket':S3BUCKET, 'key':key})
       bz.notify(event.ConfigServerBackup, value)
 
       logging.info("config_server_controller: completed my backup")
@@ -325,6 +414,8 @@ def config_server_controller(db, zk_root, zk_servers, env):
       logging.info("config_server_controller: done")
       bz.stop()
 
+   except BackupsDisabled:
+      raise
    except BongoZk.BongoZkServerTypeExists:
       db.disconnect()
       logging.info("apparently another config server "
@@ -390,6 +481,9 @@ def shard_server_controller(db, zk_root, zk_servers, env):
                    servers = zk_servers, 
                    hour=True)
 
+      if not bz.is_enabled():
+         raise BackupsDisabled
+
       bz.watch4abort(my_abort)
 
       aws = BongoAws()
@@ -416,6 +510,8 @@ def shard_server_controller(db, zk_root, zk_servers, env):
       logging.info("shard_server_controller: done")
       bz.stop()
 
+   except BackupsDisabled:
+      raise
    except BongoZk.BongoZkServerTypeExists:
       db.disconnect()
       logging.info("apparently another shard server for %s"
@@ -476,6 +572,14 @@ def main():
 
    try:
 
+      if args.disable:
+         disable_backups(zk_root, zk_servers, args.disable)
+         raise SystemExit(0)
+
+      if args.enable:
+         enable_backups(zk_root, zk_servers)
+         raise SystemExit(0)
+
       db = BongoMongo()
       
       if db.is_mongos:
@@ -493,6 +597,10 @@ def main():
 
       sys.exit(0)
 
+   except BackupsDisabled:
+      logging.warning("Backups are currently disabled.  Exiting...")
+      db.disconnect()
+      raise SystemExit(0)
    except Exception as e:
       logging.critical("Terminating with uncaught exception: %s" % e)
       traceback.print_exc(file=sys.stderr)
