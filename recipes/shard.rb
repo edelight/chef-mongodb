@@ -37,9 +37,8 @@ if node[:cloud] and
 
    include_recipe 'tealium_encfs'
 
-   tealium_encfs_mount "db_data" do
-      mount_point node[:mongodb][:data_root]
-      encrypted_mount_point node[:mongodb][:raid_mount]
+   tealium_encfs_mount node[:mongodb][:data_root] do
+      encrypted_data node[:mongodb][:raid_mount]
    end
 
 end
