@@ -18,7 +18,6 @@ import traceback
 
 S3BUCKET = 'ops.tlium.com'
 S3PREFIX = 'backups'
-DATAPATH = '/data'
 CMDMODE = 'BongoCommandMode'
 
 
@@ -79,6 +78,10 @@ def parse_args():
 		      help='production, qa, demo, etc. (default: development)',
 		      default='development')
 
+   gargle.add_argument('--data', dest='data', metavar="<data_path>",
+		      help='the DB data volume path (default: /data)',
+		      default='/data')
+
    gargle.add_argument('--verbose', action='store_true',
 		      help='log to stderr in addition to syslog (default: False)')
 
@@ -89,6 +92,9 @@ def parse_args():
 
    cmdgroup.add_argument('--disable', dest='disable', metavar="<reason>",
          help='disable cluster backups (per environment) (default: none)')
+
+   cmdgroup.add_argument('--solo', action='store_true',
+		         help='Only snapshot the local DB array devices (no config DB backup, no ZooKeeper interaction, etc.).  Does not care if the balancer is running and will happily lock your primary against writes during the snapshots, so... good luck.')
 
    return gargle.parse_args()
 
@@ -132,13 +138,13 @@ def get_local_raid_devs(path):
    return [d.replace('xvd','sd') for d in devs.split('\n')]
 
 
-def snapshot_ebs_raid(aws, snapshot_name, snapshot_description):
+def snapshot_ebs_raid(aws, vol_path, snapshot_name, snapshot_description):
 
    try:
 
-      array_uuid = get_local_uuid(DATAPATH)
+      array_uuid = get_local_uuid(vol_path)
 
-      local_devs = get_local_raid_devs(DATAPATH)
+      local_devs = get_local_raid_devs(vol_path)
 
       vols = aws.get_ebs_vols(local_devs)
 
@@ -205,6 +211,51 @@ def enable_backups(zk_root, zk_servers):
       raise BackupAbort(bz,
                         "enable_backups: aborting with "
                         "ZooKeeper-related error: %s" % e)
+
+
+def solo_controller(db, data, env):
+   """
+   - lock my db
+   - snapshot my raid vols
+   - unlock my db
+   """
+
+   try:
+
+      replset_name = db.replica_set_name()
+
+      if not replset_name:
+         raise Exception("cannot determine replica set name")
+
+      my_desc = "mongodb_shard_server/%s" % replset_name
+      snap_desc = "%s/mongodb_shard/%s" % (env, replset_name)
+      snap_name = "DB Backup - %s" % replset_name
+
+      aws = BongoAws()
+
+      logging.info("solo_controller: locking my db against writes")
+      db.lock()
+
+      logging.info("solo_controller: creating snapshots of my raid vols")
+      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc)
+
+      logging.info("solo_controller: unlocking my db")
+      db.unlock()
+
+      logging.info("solo_controller: done")
+
+   except BackupsDisabled:
+      raise
+   except BongoMongo.BongoMongoException as e:
+      raise SystemExit("solo_controller: aborting with MongoDB-related error: %s"
+                       % e)
+   except BongoAws.BongoAwsException as e:
+      raise SystemExit("solo_controller: aborting with AWS-related error: %s" % e)
+   except BackupError as e:
+      raise SystemExit("solo_controller: aborting: %s" % e)
+   except Exception as e:
+      traceback.print_exc(file=sys.stderr)
+      raise SystemExit("solo_controller: aborting with uncaught exception: %s" % e)
 
 
 def mongos_controller(db, zk_root, zk_servers):
@@ -441,7 +492,7 @@ def config_server_controller(db, zk_root, zk_servers, env):
                             "exception: %s" % e)
 
 
-def shard_server_controller(db, zk_root, zk_servers, env):
+def shard_server_controller(db, zk_root, zk_servers, data, env):
    """
    - get my replica-specific lock and join the party (what rep set am I?)
      (done by BongoZk)
@@ -500,7 +551,7 @@ def shard_server_controller(db, zk_root, zk_servers, env):
       db.lock()
 
       logging.info("shard_server_controller: creating snapshots of my raid vols")
-      snapshots = snapshot_ebs_raid(aws, snap_name, snap_desc)
+      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc)
 
       logging.info("shard_server_controller: unlocking my db")
       db.unlock()
@@ -559,16 +610,17 @@ def main():
       stderr.setLevel(logging.INFO)
       logging.root.addHandler(stderr)
 
-   try:
-      yfile = yaml.safe_load(open(args.zkconfig))
-      zk_servers = ','.join("%s:%s" % (s['host'],s['port'])
-                          for s in yfile['zookeepers'])
-   except Exception as e:
-      logging.critical("Error reading ZooKeeper servers from yaml: %s: %s"
-                       % (args.zkconfig, e))
-      raise SystemExit(1)
+   if not args.solo:
+      try:
+         yfile = yaml.safe_load(open(args.zkconfig))
+         zk_servers = ','.join("%s:%s" % (s['host'],s['port'])
+                             for s in yfile['zookeepers'])
+      except Exception as e:
+         logging.critical("Error reading ZooKeeper servers from yaml: %s: %s"
+                          % (args.zkconfig, e))
+         raise SystemExit(1)
 
-   zk_root = "%s/%s" % (args.zkroot.rstrip('/'), args.env)
+      zk_root = "%s/%s" % (args.zkroot.rstrip('/'), args.env)
 
    try:
 
@@ -581,6 +633,14 @@ def main():
          raise SystemExit(0)
 
       db = BongoMongo()
+
+      if args.solo:
+         if db.is_mongos or db.is_config:
+            raise SystemExit("Solo mode can only be used on a shard server - "
+                             "exiting...")
+         solo_controller(db, args.data, args.env)
+         sys.exit(0)
+
       
       if db.is_mongos:
 	 logging.info("I think I'm a Mongos server")
@@ -590,7 +650,7 @@ def main():
 	 config_server_controller(db, zk_root, zk_servers, args.env)
       elif not db.is_primary:
 	 logging.info("I think I'm a Shard server")
-	 shard_server_controller(db, zk_root, zk_servers, args.env)
+	 shard_server_controller(db, zk_root, zk_servers, args.data, args.env)
       else:
 	 logging.info("not a mongos or config or non-primary shard server - "
                       "exiting...")
