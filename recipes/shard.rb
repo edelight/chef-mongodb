@@ -35,10 +35,12 @@ if node[:cloud] and
       action [ :auto_attach ]
    end
 
-   include_recipe 'tealium_encfs'
+   if node[:mongodb][:encfs] then
+      include_recipe 'tealium_encfs'
 
-   tealium_encfs_mount node[:mongodb][:data_root] do
-      encrypted_data node[:mongodb][:raid_mount]
+      tealium_encfs_mount node[:mongodb][:data_root] do
+         encrypted_data node[:mongodb][:raid_mount]
+      end
    end
 
 end

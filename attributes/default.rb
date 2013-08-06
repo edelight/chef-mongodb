@@ -39,6 +39,8 @@ default[:mongodb][:raid_mount] = "/data-crypt"
 default[:mongodb][:raid_snaps] = nil
 default[:mongodb][:setra] = 128
 
+default[:mongodb][:encfs] = nil
+
 default[:mongodb][:backup][:hour] = "0"
 default[:mongodb][:backup][:minute] = "15"
 default[:mongodb][:backup][:environment] = nil
