@@ -35,7 +35,7 @@ default[:mongodb][:raid_level] = 10
 default[:mongodb][:raid_disk_count] = 4
 default[:mongodb][:raid_disk_size] = 4
 default[:mongodb][:raid_ebs_type] = "standard"
-default[:mongodb][:raid_mount] = "/data-crypt"
+default[:mongodb][:raid_mount] = "/data"
 default[:mongodb][:raid_snaps] = nil
 default[:mongodb][:setra] = 128
 
