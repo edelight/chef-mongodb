@@ -13,6 +13,7 @@ import yaml
 import logging
 from logging.handlers import SysLogHandler
 import sys
+import os
 import traceback
 
 
@@ -242,6 +243,7 @@ def solo_controller(db, data, env):
       logging.info("solo_controller: unlocking my db")
       db.unlock()
 
+      logging.info("solo_controller: created snapshots: %s" % snapshots)
       logging.info("solo_controller: done")
 
    except BackupsDisabled:
@@ -286,7 +288,7 @@ def mongos_controller(db, zk_root, zk_servers):
          db.start_balancer()
 
       logging.critical("mongos_controller: exiting...")
-      raise SystemExit(1)
+      os._exit(1)
 
    try:
 
@@ -414,7 +416,7 @@ def config_server_controller(db, zk_root, zk_servers, env):
          db.startup()
 
       logging.critical("config_server_controller: exiting...")
-      raise SystemExit(1)
+      os._exit(1)
 
    try:
       bz = BongoZk(zk_root,
@@ -514,7 +516,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
          db.unlock()
 
       logging.critical("shard_server_controller: exiting...")
-      raise SystemExit(1)
+      os._exit(1)
 
    try:
 
@@ -565,7 +567,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
       raise
    except BongoZk.BongoZkServerTypeExists:
       db.disconnect()
-      logging.info("apparently another shard server for %s"
+      logging.info("apparently another shard server for %s "
                    "is already handling the backup process - exiting..." 
                    % replset_name) 
       raise SystemExit(0) 

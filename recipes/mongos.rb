@@ -21,8 +21,11 @@
 
 include_recipe "mongodb"
 
-service "mongodb" do
-  action [:disable, :stop]
+if ::File.executable?('/etc/init.d/mongodb') then
+   service "mongodb" do
+     supports :status => true, :restart => true
+     action [:disable, :stop]
+   end
 end
 
 configsvr = search(
