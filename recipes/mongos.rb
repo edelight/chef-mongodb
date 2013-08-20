@@ -24,12 +24,17 @@ include_recipe "mongodb"
 service "mongodb" do
   only_if 'test -f /etc/init.d/mongodb'
   action [:disable, :stop]
+  ignore_failure true
+end
+service "mongod" do
+  action [:disable, :stop]
+  ignore_failure true
 end
 
 configsrv = search(
   :node,
   "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   recipes:mongodb\\:\\:configserver AND \
+   roles:mongo_config_cluster AND \
    chef_environment:#{node.chef_environment}"
 )
 
