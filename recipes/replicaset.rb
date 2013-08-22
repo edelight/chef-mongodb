@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: mongodb
-# Recipe:: replicatset
+# Recipe:: replicaset
 #
 # Copyright 2011, edelight GmbH
 #
