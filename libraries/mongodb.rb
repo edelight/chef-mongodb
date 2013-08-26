@@ -355,7 +355,7 @@ class Chef::ResourceDefinitionList::MongoDB
     
     databases.each do |db_name|
       cmd = BSON::OrderedHash.new
-      cmd['enablesharding'] = db_name
+      cmd['enableSharding'] = db_name
       begin
         result = admin.command(cmd, :check_response => false)
       rescue Mongo::OperationTimeout
@@ -377,7 +377,7 @@ class Chef::ResourceDefinitionList::MongoDB
     
     sharded_collections.each do |name, key|
       cmd = BSON::OrderedHash.new
-      cmd['shardcollection'] = name
+      cmd['shardCollection'] = name
       cmd['key'] = {key => 1}
       begin
         result = admin.command(cmd, :check_response => false)
