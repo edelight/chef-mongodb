@@ -180,7 +180,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     action service_action
     notifies :start, service_notifies
     if !replicaset_name.nil?
-      notifies :create, "ruby_block[config_replicaset]"
+      notifies :create, "ruby_block[config_replicaset]", :delayed
     end
     if type == "mongos"
       notifies :create, "ruby_block[config_sharding]", :delayed
