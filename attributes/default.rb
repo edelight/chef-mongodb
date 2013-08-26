@@ -48,6 +48,9 @@ default[:mongodb][:ulimit][:open_files] = 64000
 default[:mongodb][:ulimit][:memory_size] = "unlimited"
 default[:mongodb][:ulimit][:processes] = 32000
 
+# other settings
+default[:mongodb][:oplogsize] = nil
+
 default[:mongodb][:init_dir] = "/etc/init.d"
 
 default[:mongodb][:init_script_template] = "mongodb.init.erb"
