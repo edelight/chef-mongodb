@@ -1,3 +1,4 @@
 build
 .kitchen/
 .kitchen.local.yml
+Vagrantfile
