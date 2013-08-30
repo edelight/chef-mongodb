@@ -34,6 +34,6 @@ cron "mongodb-backup" do
    hour  node['mongodb']['backup']['hour']
    user  "root"
    shell "/bin/bash"
-   command "/usr/local/bin/bongo --data #{data_path} #{env_opt}"
+   command "/usr/local/bin/bongo --data #{data_path} #{env_opt} 2>&1 | /usr/bin/logger -t bongo"
 end
 
