@@ -17,8 +17,6 @@ import os
 import traceback
 
 
-S3BUCKET = 'ops.tlium.com'
-S3PREFIX = 'backups'
 CMDMODE = 'BongoCommandMode'
 
 
@@ -75,13 +73,22 @@ def parse_args():
 		      help='zookeeper root path - The env arg will be appended to this. (default: /backup/mongodb_cluster)',
 		      default='/backup/mongodb_cluster')
 
-   gargle.add_argument('--env', dest='env', metavar="<environment>",
-		      help='production, qa, demo, etc. (default: development)',
+   gargle.add_argument('--cluster', dest='env', metavar="<cluster_id>",
+		      help='MongoDB cluster name, e.g. production, qa, demo, etc. (default: development)',
 		      default='development')
 
    gargle.add_argument('--data', dest='data', metavar="<data_path>",
 		      help='the DB data volume path (default: /data)',
 		      default='/data')
+
+   gargle.add_argument('--s3bucket', dest='s3bucket', metavar="<s3_bucket>",
+		      help='S3 bucket in which the config database backups are stored (default: ops.tlium.com)',
+		      default='ops.tlium.com')
+
+   gargle.add_argument('--s3key', dest='s3key', metavar="<s3_key>",
+                      help='S3 key prefix used to store the config database backups - The actual key used is ' \
+                           '<key>/<cluster_id>/config_server/<date>-<time> (default: backups/mongodb)',
+		      default='backups/mongodb')
 
    gargle.add_argument('--verbose', action='store_true',
 		      help='log to stderr in addition to syslog (default: False)')
@@ -229,7 +236,7 @@ def solo_controller(db, data, env):
          raise Exception("cannot determine replica set name")
 
       my_desc = "mongodb_shard_server/%s" % replset_name
-      snap_desc = "%s/mongodb_shard/%s" % (env, replset_name)
+      snap_desc = "%s - %s" % (env, replset_name)
       snap_name = "DB Backup - %s" % replset_name
 
       aws = BongoAws()
@@ -395,7 +402,7 @@ def mongos_controller(db, zk_root, zk_servers):
    
 
 
-def config_server_controller(db, zk_root, zk_servers, env):
+def config_server_controller(db, zk_root, zk_servers, env, s3bucket, s3key):
    """
    - get my lock & join the party (done by BongoZk)
    - wait until the balancer is stopped
@@ -445,14 +452,13 @@ def config_server_controller(db, zk_root, zk_servers, env):
       db.dump('config', dumpfile)
 
       # Store config db backup in S3
-      key = "%s/%s/mongodb/config_server/%s-%s" % (S3PREFIX, env,
-                                                   bz.datestamp, bz.timestamp)
+      key = "%s/%s/config_server/%s-%s" % (s3key, env, bz.datestamp, bz.timestamp)
       logging.info("config_server_controller: storing backup on S3: "
-                   "bucket = %s, key = %s" % (S3BUCKET, key))
-      aws.write_file_to_s3(S3BUCKET, key, dumpfile)
+                   "bucket = %s, key = %s" % (s3bucket, key))
+      aws.write_file_to_s3(s3bucket, key, dumpfile)
 
       # Put S3 info in ZK (notifies shard servers that config is backed up
-      value = str({'bucket':S3BUCKET, 'key':key})
+      value = str({'bucket':s3bucket, 'key':key})
       bz.notify(event.ConfigServerBackup, value)
 
       logging.info("config_server_controller: completed my backup")
@@ -526,7 +532,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
          raise Exception("cannot determine replica set name")
 
       my_desc = "mongodb_shard_server/%s" % replset_name
-      snap_desc = "%s/mongodb_shard/%s" % (env, replset_name)
+      snap_desc = "%s - %s" % (env, replset_name)
       snap_name = "DB Backup - %s" % replset_name
 
       bz = BongoZk(zk_root,
@@ -593,6 +599,8 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
 
 def main():
 
+   args = parse_args()
+
    logging.root.name = 'bongo'
    logging.root.setLevel(logging.INFO)
 
@@ -603,8 +611,6 @@ def main():
    syslog.setLevel(logging.INFO)
    syslog.addFilter(BackupLogFilter('bongo'))
    logging.root.addHandler(syslog)
-
-   args = parse_args()
 
    if args.verbose:
       stderr = logging.StreamHandler()
@@ -649,7 +655,7 @@ def main():
 	 mongos_controller(db, zk_root, zk_servers)
       elif db.is_config:
 	 logging.info("I think I'm a Config server")
-	 config_server_controller(db, zk_root, zk_servers, args.env)
+	 config_server_controller(db, zk_root, zk_servers, args.env, args.s3bucket, args.s3key)
       elif not db.is_primary:
 	 logging.info("I think I'm a Shard server")
 	 shard_server_controller(db, zk_root, zk_servers, args.data, args.env)

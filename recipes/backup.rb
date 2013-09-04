@@ -8,12 +8,13 @@ cookbook_file '/usr/local/bin/bongo' do
    action :create
 end
 
-# FYI: The backup script defaults to the 'development' env if --env is not used.
+# FYI: The backup script defaults to the 'development' cluster
+# if --cluster is not used.
 
-if node['mongodb']['backup']['environment'].nil?
-   env_opt = ""
+if node['mongodb']['cluster_name'].nil?
+   cluster_opt = ""
 else
-   env_opt = "--env #{node['mongodb']['backup']['environment']}"
+   cluster_opt = "--cluster #{node['mongodb']['cluster_name']}"
 end
 
 if node['mongodb']['raid'].nil?
@@ -34,6 +35,6 @@ cron "mongodb-backup" do
    hour  node['mongodb']['backup']['hour']
    user  "root"
    shell "/bin/bash"
-   command "/usr/local/bin/bongo --data #{data_path} #{env_opt} 2>&1 | /usr/bin/logger -t bongo"
+   command "/usr/local/bin/bongo --data #{data_path} #{cluster_opt} 2>&1 | /usr/bin/logger -t bongo"
 end
 
