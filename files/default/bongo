@@ -107,6 +107,31 @@ def parse_args():
    return gargle.parse_args()
 
 
+def whoami():
+   from socket import gethostbyname
+   from socket import getfqdn
+   try:
+      fqdn = getfqdn()
+   except Exception as e:
+      log.warning("can't get my FQDN: %s" % e)
+   try:
+      ip = ""
+      if fqdn:
+         ip = gethostbyname(fqdn)
+   except Exception as e:
+      log.warning("can't get my IP: %s" % e)
+   if fqdn and ip:
+      whoami = "%s (%s)" % (fqdn, ip)
+   elif fqdn:
+      whoami = fqdn
+   elif ip:
+      whoami = ip
+   else:
+      whoami = None
+      log.warning("I don't know who I am!")
+   return whoami
+
+
 def get_local_mnt_dev(path):
 
    import subprocess
@@ -146,7 +171,7 @@ def get_local_raid_devs(path):
    return [d.replace('xvd','sd') for d in devs.split('\n')]
 
 
-def snapshot_ebs_raid(aws, vol_path, snapshot_name, snapshot_description):
+def snapshot_ebs_raid(aws, vol_path, snapshot_name, snapshot_description, cluster='', source=''):
 
    try:
 
@@ -166,7 +191,10 @@ def snapshot_ebs_raid(aws, vol_path, snapshot_name, snapshot_description):
          try:
 
             snap_id = aws.create_snapshot(vol['id'], desc,
-                                          Name=snapshot_name, UUID=array_uuid)
+                                          Name=snapshot_name,
+                                          UUID=array_uuid,
+                                          Cluster=cluster,
+                                          Source=source)
             snaps.append(snap_id)
 
          except BongoAws.BongoAwsException as e:
@@ -180,7 +208,7 @@ def snapshot_ebs_raid(aws, vol_path, snapshot_name, snapshot_description):
 
 
 def disable_backups(zk_root, zk_servers, reason):
-   """Use BongoZK to set disabled flag."""
+   """Use BongoZk to set disabled flag."""
 
    try:
 
@@ -201,7 +229,7 @@ def disable_backups(zk_root, zk_servers, reason):
 
 
 def enable_backups(zk_root, zk_servers):
-   """Use BongoZK to unset disabled flag."""
+   """Use BongoZk to unset disabled flag."""
 
    try:
 
@@ -239,13 +267,15 @@ def solo_controller(db, data, env):
       snap_desc = "%s - %s" % (env, replset_name)
       snap_name = "DB Backup - %s" % replset_name
 
+      id = whoami()
+
       aws = BongoAws()
 
       logging.info("solo_controller: locking my db against writes")
       db.lock()
 
       logging.info("solo_controller: creating snapshots of my raid vols")
-      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc)
+      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc, env, id)
 
       logging.info("solo_controller: unlocking my db")
       db.unlock()
@@ -559,7 +589,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
       db.lock()
 
       logging.info("shard_server_controller: creating snapshots of my raid vols")
-      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc)
+      snapshots = snapshot_ebs_raid(aws, data, snap_name, snap_desc, env, bz.id)
 
       logging.info("shard_server_controller: unlocking my db")
       db.unlock()
