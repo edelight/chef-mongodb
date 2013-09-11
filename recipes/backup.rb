@@ -17,6 +17,12 @@ else
    cluster_opt = "--cluster #{node['mongodb']['cluster_name']}"
 end
 
+if node['mongodb']['backup']['archive_days'].nil?
+   clean_opt = ""
+else
+   clean_opt = "--clean #{node['mongodb']['backup']['archive_days']}"
+end
+
 if node['mongodb']['raid'].nil?
    if node['mongodb']['data_root'].nil?
       data_path = node['mongodb']['dbpath']
@@ -35,6 +41,6 @@ cron "mongodb-backup" do
    hour  node['mongodb']['backup']['hour']
    user  "root"
    shell "/bin/bash"
-   command "/usr/local/bin/bongo --data #{data_path} #{cluster_opt} 2>&1 | /usr/bin/logger -t bongo"
+   command "/usr/local/bin/bongo --data #{data_path} #{cluster_opt} #{clean_opt} 2>&1 | /usr/bin/logger -t bongo"
 end
 
