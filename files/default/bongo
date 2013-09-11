@@ -46,16 +46,34 @@ class BackupAbort(Exception):
       raise SystemExit(1)
 
 
-class BackupEvents:
-   BackupsComplete = 'mongodb_mongos_server/backups_complete'
-   ConfigServerBackup = 'mongodb_config_server/configdb_backup'
-   ConfigServerShutdown = 'mongodb_config_server/shutdown'
-   ConfigServerStarted = 'mongodb_config_server/started'
-   BalancerStopped = 'mongodb_mongos_server/balancer_stopped'
-   BalancerStarted = 'mongodb_mongos_server/balancer_started'
+class BackupServerType:
+   Mongos = 'mongodb_mongos_server'
+   Config = 'mongodb_config_server'
+   Shard = 'mongodb_shard_server'
 
+server_type = BackupServerType()
+
+
+class BackupEvents:
+   BackupsComplete = server_type.Mongos + '/backups_complete'
+   BalancerStopped = server_type.Mongos + '/balancer_stopped'
+   BalancerStarted = server_type.Mongos + '/balancer_started'
+   ConfigServerBackup = server_type.Config + '/configdb_backup'
+   ConfigServerShutdown = server_type.Config + '/shutdown'
+   ConfigServerStarted = server_type.Config + '/started'
 
 event = BackupEvents()
+
+
+def positive_int(i):
+   try:
+      i = int(i)
+      if i < 1: raise ValueError
+   except ValueError:
+      raise argparse.ArgumentTypeError("argument for --clean must be a "
+                                       "positive int")
+   return i
+
 
 def parse_args():
 
@@ -86,9 +104,17 @@ def parse_args():
 		      default='ops.tlium.com')
 
    gargle.add_argument('--s3key', dest='s3key', metavar="<s3_key>",
-                      help='S3 key prefix used to store the config database backups - The actual key used is ' \
-                           '<key>/<cluster_id>/config_server/<date>-<time> (default: backups/mongodb)',
+                      help='S3 key prefix used to store the config database ' \
+                           'backups - The actual key used is ' \
+                           '<key>/<cluster_id>/config_server/<date>-<time> ' \
+                           '(default: backups/mongodb)',
 		      default='backups/mongodb')
+
+   gargle.add_argument('--clean', dest='clean', metavar="<clean>",
+                       type=positive_int,
+                       help='any backups older than the given number of days' \
+                            ' are removed along with the corresponding ZK entries' \
+                            ' (default: None)')
 
    gargle.add_argument('--verbose', action='store_true',
 		      help='log to stderr in addition to syslog (default: False)')
@@ -263,7 +289,6 @@ def solo_controller(db, data, env):
       if not replset_name:
          raise Exception("cannot determine replica set name")
 
-      my_desc = "mongodb_shard_server/%s" % replset_name
       snap_desc = "%s - %s" % (env, replset_name)
       snap_name = "DB Backup - %s" % replset_name
 
@@ -297,7 +322,7 @@ def solo_controller(db, data, env):
       raise SystemExit("solo_controller: aborting with uncaught exception: %s" % e)
 
 
-def mongos_controller(db, zk_root, zk_servers):
+def mongos_controller(db, zk_root, zk_servers, clean_days):
    """
    - get my lock & join the party (done by BongoZk)
    - get list of shards... wait until party size = shard count + 
@@ -332,7 +357,7 @@ def mongos_controller(db, zk_root, zk_servers):
       from time import sleep
 
       bz = BongoZk(zk_root,
-                   'mongodb_mongos_server',
+                   server_type.Mongos,
                    servers = zk_servers, 
                    hour=True)
 
@@ -377,7 +402,7 @@ def mongos_controller(db, zk_root, zk_servers):
       for shard in db.shards:
          logging.info("mongos_controller: waiting for %s backup to complete"
                       % shard)
-         bz.wait4event("mongodb_shard_server/%s" % shard)
+         bz.wait4event(server_type.Shard + "/" + shard)
 
       # config db and all the shards are backed up at this point, in theory
 
@@ -401,9 +426,26 @@ def mongos_controller(db, zk_root, zk_servers):
          logging.info("mongos_controller: starting balancer")
          db.start_balancer()
       else:
-         log.warning("leaving cluster balancer disabled (as I found it)")
+         log.warning("mongos_controller: leaving cluster balancer "
+                     "disabled (as I found it)")
 
       bz.notify(event.BalancerStarted)
+
+      if clean_days:
+
+         from ast import literal_eval
+
+         logging.info("mongos_controller: cleaning old backup info...")
+
+         for old_backup in bz.archive(clean_days, server_type.Mongos):
+
+            bz.delete(old_backup[0], clean=True, recursive=True)
+
+            # Need better way to deal with ABORTs.  Should really be abstracted
+            # by BongoZk.
+
+            abort_path = old_backup[0].replace(server_type.Mongos, 'ABORT')
+            bz.delete(abort_path, clean=True)
 
       logging.info("mongos_controller: done")
       bz.stop()
@@ -432,7 +474,8 @@ def mongos_controller(db, zk_root, zk_servers):
    
 
 
-def config_server_controller(db, zk_root, zk_servers, env, s3bucket, s3key):
+def config_server_controller(db, zk_root, zk_servers, env,
+                             s3bucket, s3key, clean_days):
    """
    - get my lock & join the party (done by BongoZk)
    - wait until the balancer is stopped
@@ -457,7 +500,7 @@ def config_server_controller(db, zk_root, zk_servers, env, s3bucket, s3key):
 
    try:
       bz = BongoZk(zk_root,
-                   'mongodb_config_server',
+                   server_type.Config,
                    servers = zk_servers, 
                    hour=True)
 
@@ -500,6 +543,24 @@ def config_server_controller(db, zk_root, zk_servers, env, s3bucket, s3key):
 
       bz.notify(event.ConfigServerStarted)
 
+      if clean_days:
+
+         from ast import literal_eval
+
+         logging.info("config_server_controller: cleaning configdb backups...")
+
+         for old_backup in bz.archive(clean_days, event.ConfigServerBackup):
+
+            old_s3_info = literal_eval(old_backup[1])
+            s3_bucket = old_s3_info['bucket']
+            s3_key = old_s3_info['key']
+
+            aws.delete_from_s3(s3_bucket, s3_key)
+
+            old_config_path = old_backup[0].replace(event.ConfigServerBackup,
+                                                    server_type.Config)
+            bz.delete(old_config_path, clean=True, recursive=True)
+
       logging.info("config_server_controller: done")
       bz.stop()
 
@@ -530,7 +591,7 @@ def config_server_controller(db, zk_root, zk_servers, env, s3bucket, s3key):
                             "exception: %s" % e)
 
 
-def shard_server_controller(db, zk_root, zk_servers, data, env):
+def shard_server_controller(db, zk_root, zk_servers, data, env, clean_days):
    """
    - get my replica-specific lock and join the party (what rep set am I?)
      (done by BongoZk)
@@ -561,7 +622,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
       if not replset_name:
          raise Exception("cannot determine replica set name")
 
-      my_desc = "mongodb_shard_server/%s" % replset_name
+      my_desc = server_type.Shard + "/" + replset_name
       snap_desc = "%s - %s" % (env, replset_name)
       snap_name = "DB Backup - %s" % replset_name
 
@@ -595,6 +656,21 @@ def shard_server_controller(db, zk_root, zk_servers, data, env):
       db.unlock()
 
       bz.set_znode4today(str(snapshots))
+
+      if clean_days:
+
+         from ast import literal_eval
+
+         logging.info("shard_server_controller: cleaning snapshots...")
+
+         for old_backup in bz.archive(clean_days, my_desc):
+            old_index_path = old_backup[0]
+            old_snaps = literal_eval(old_backup[1])
+
+            for snap_id in old_snaps:
+               aws.delete_snapshot(snap_id)
+
+            bz.delete(old_index_path, clean=True)
 
       logging.info("shard_server_controller: done")
       bz.stop()
@@ -682,13 +758,15 @@ def main():
       
       if db.is_mongos:
 	 logging.info("I think I'm a Mongos server")
-	 mongos_controller(db, zk_root, zk_servers)
+	 mongos_controller(db, zk_root, zk_servers, args.clean)
       elif db.is_config:
 	 logging.info("I think I'm a Config server")
-	 config_server_controller(db, zk_root, zk_servers, args.env, args.s3bucket, args.s3key)
+	 config_server_controller(db, zk_root, zk_servers,
+                                  args.env, args.s3bucket, args.s3key, args.clean)
       elif not db.is_primary:
 	 logging.info("I think I'm a Shard server")
-	 shard_server_controller(db, zk_root, zk_servers, args.data, args.env)
+	 shard_server_controller(db, zk_root, zk_servers,
+                                 args.data, args.env, args.clean)
       else:
 	 logging.info("not a mongos or config or non-primary shard server - "
                       "exiting...")
