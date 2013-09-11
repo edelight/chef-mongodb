@@ -12,9 +12,12 @@ recipe "mongodb::shard", "Installs and configures a single shard"
 recipe "mongodb::replicaset", "Installs and configures a mongodb replicaset"
 recipe "mongodb::backup", "Installs and configures mongodb cluster backup software"
 
-%w( apt aws_ebs_disk aws tealium_encfs tealium_bongo ).each do |cookbook|
+%w( apt aws_ebs_disk aws ).each do |cookbook|
   depends cookbook
 end
+
+depends "tealium_encfs", "= 0.1.0"
+depends "tealium_bongo", "= 0.1.1"
 
 %w{ ubuntu }.each do |os|
   supports os
