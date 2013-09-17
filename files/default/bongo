@@ -15,6 +15,8 @@ from logging.handlers import SysLogHandler
 import sys
 import os
 import traceback
+import argparse
+
 
 
 CMDMODE = 'BongoCommandMode'
@@ -65,55 +67,53 @@ class BackupEvents:
 event = BackupEvents()
 
 
-def positive_int(i):
+def positive_integer(i):
    try:
       i = int(i)
       if i < 1: raise ValueError
    except ValueError:
-      raise argparse.ArgumentTypeError("argument for --clean must be a "
-                                       "positive int")
+      raise argparse.ArgumentTypeError("argument must be a "
+                                       "positive integer")
    return i
 
 
 def parse_args():
 
-   import argparse
-
    gargle = argparse.ArgumentParser(prog = "bongo", description=desc,
 	       usage='%(prog)s [options] <value>',
 	       formatter_class = argparse.RawDescriptionHelpFormatter)
 
-   gargle.add_argument('--zkconfig', dest='zkconfig', metavar="<zk_config_file>",
+   gargle.add_argument('--zkconfig', dest='zkconfig', metavar="<file_path>",
 		      help='zookeeper server list file (default: /etc/zookeeper/server_list.yml)',
 		      default='/etc/zookeeper/server_list.yml')
 
-   gargle.add_argument('--zkroot', dest='zkroot', metavar="<zk_root_path>",
+   gargle.add_argument('--zkroot', dest='zkroot', metavar="<string>",
 		      help='zookeeper root path - The env arg will be appended to this. (default: /backup/mongodb_cluster)',
 		      default='/backup/mongodb_cluster')
 
-   gargle.add_argument('--cluster', dest='env', metavar="<cluster_id>",
+   gargle.add_argument('--cluster', dest='env', metavar="<string>",
 		      help='MongoDB cluster name, e.g. production, qa, demo, etc. (default: development)',
 		      default='development')
 
-   gargle.add_argument('--data', dest='data', metavar="<data_path>",
+   gargle.add_argument('--data', dest='data', metavar="<string>",
 		      help='the DB data volume path (default: /data)',
 		      default='/data')
 
-   gargle.add_argument('--s3bucket', dest='s3bucket', metavar="<s3_bucket>",
+   gargle.add_argument('--s3bucket', dest='s3bucket', metavar="<string>",
 		      help='S3 bucket in which the config database backups are stored (default: ops.tlium.com)',
 		      default='ops.tlium.com')
 
-   gargle.add_argument('--s3key', dest='s3key', metavar="<s3_key>",
+   gargle.add_argument('--s3key', dest='s3key', metavar="<string>",
                       help='S3 key prefix used to store the config database ' \
                            'backups - The actual key used is ' \
                            '<key>/<cluster_id>/config_server/<date>-<time> ' \
                            '(default: backups/mongodb)',
 		      default='backups/mongodb')
 
-   gargle.add_argument('--clean', dest='clean', metavar="<clean>",
-                       type=positive_int,
-                       help='any backups older than the given number of days' \
-                            ' are removed along with the corresponding ZK entries' \
+   gargle.add_argument('--clean', dest='clean', metavar="<int>",
+                       type=positive_integer,
+                       help='discard backups older than the given number of days' \
+                            ' along with the corresponding ZK entries' \
                             ' (default: None)')
 
    gargle.add_argument('--verbose', action='store_true',
@@ -431,9 +431,7 @@ def mongos_controller(db, zk_root, zk_servers, clean_days):
 
       bz.notify(event.BalancerStarted)
 
-      if clean_days:
-
-         from ast import literal_eval
+      if clean_days != None:
 
          logging.info("mongos_controller: cleaning old backup info...")
 
@@ -543,7 +541,7 @@ def config_server_controller(db, zk_root, zk_servers, env,
 
       bz.notify(event.ConfigServerStarted)
 
-      if clean_days:
+      if clean_days != None:
 
          from ast import literal_eval
 
@@ -657,7 +655,7 @@ def shard_server_controller(db, zk_root, zk_servers, data, env, clean_days):
 
       bz.set_znode4today(str(snapshots))
 
-      if clean_days:
+      if clean_days != None:
 
          from ast import literal_eval
 
