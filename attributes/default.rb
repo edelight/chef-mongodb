@@ -43,7 +43,6 @@ default[:mongodb][:encfs] = nil
 
 default[:mongodb][:backup][:hour] = "5"
 default[:mongodb][:backup][:minute] = "15"
-default[:mongodb][:backup][:environment] = nil
 default[:mongodb][:backup][:archive_days] = "30"
 
 case node['platform']
