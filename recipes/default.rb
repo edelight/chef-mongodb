@@ -24,21 +24,6 @@ package node[:mongodb][:package_name] do
   version node[:mongodb][:package_version]
 end
 
-needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
-
-# install the mongo ruby gem at compile time to make it globally available
-if needs_mongo_gem
-  if(Gem.const_defined?("Version") and Gem::Version.new(Chef::VERSION) < Gem::Version.new('10.12.0'))
-    gem_package 'mongo' do
-      action :nothing
-    end.run_action(:install)
-    Gem.clear_paths
-  else
-    chef_gem 'mongo' do
-      action :install
-    end
-  end
-end
 
 # Create keyFile if specified
 if node[:mongodb][:key_file]
@@ -52,15 +37,13 @@ if node[:mongodb][:key_file]
 end
 
 
-if node.recipe?("mongodb::default") or node.recipe?("mongodb")
-  # configure default instance
-  mongodb_instance "mongodb" do
-    mongodb_type "mongod"
-    bind_ip      node['mongodb']['bind_ip']
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-    enable_rest  node['mongodb']['enable_rest']
-    smallfiles   node['mongodb']['smallfiles']
-  end
+# configure default instance
+mongodb_instance "mongodb" do
+  mongodb_type "mongod"
+  bind_ip      node['mongodb']['bind_ip']
+  port         node['mongodb']['port']
+  logpath      node['mongodb']['logpath']
+  dbpath       node['mongodb']['dbpath']
+  enable_rest  node['mongodb']['enable_rest']
+  smallfiles   node['mongodb']['smallfiles']
 end

@@ -20,6 +20,7 @@
 #
 
 include_recipe "mongodb"
+include_recipe "mongodb::mongo_gem"
 
 service "mongodb" do
   action [:disable, :stop]
