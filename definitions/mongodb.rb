@@ -141,7 +141,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     variables :provides => name
     notifies :restart, "service[#{name}]"
   end
-  
+
   # service
   service name do
     supports :status => true, :restart => true
