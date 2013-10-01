@@ -21,7 +21,8 @@ default[:mongodb][:dbpath] = "/var/lib/mongodb"
 default[:mongodb][:logpath] = "/var/log/mongodb"
 default[:mongodb][:bind_ip] = nil
 default[:mongodb][:port] = 27017
-default[:mongodb][:configfile] = nil
+default[:mongodb][:use_configfile] = false
+default[:mongodb][:configfile] = "/etc/mongodb.conf"
 
 # cluster identifier
 default[:mongodb][:client_roles] = []
@@ -47,6 +48,9 @@ default[:mongodb][:ulimit][:virtual_memory] = "unlimited"
 default[:mongodb][:ulimit][:open_files] = 64000
 default[:mongodb][:ulimit][:memory_size] = "unlimited"
 default[:mongodb][:ulimit][:processes] = 32000
+
+# other settings
+default[:mongodb][:oplogsize] = nil
 
 default[:mongodb][:init_dir] = "/etc/init.d"
 
