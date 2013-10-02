@@ -104,7 +104,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       "configsrv" => false, #type == "configserver", this might change the port
       "shardsrv" => false,  #type == "shard", dito.
       "nojournal" => nojournal,
-      "enable_rest" => params[:enable_rest],
+      "enable_rest" => params[:enable_rest] && type != "mongos",
       "smallfiles" => params[:smallfiles]
     )
     notifies :restart, "service[#{name}]"
