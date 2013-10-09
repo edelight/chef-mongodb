@@ -179,6 +179,11 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
       end
       action :nothing
     end
+
+    ruby_block "run_config_replicaset" do
+      block {}
+      notifies :create, "ruby_block[config_replicaset]"
+    end
   end
 
   # sharding
