@@ -29,6 +29,15 @@ default[:mongodb][:cluster_name] = nil
 default[:mongodb][:replicaset_name] = nil
 default[:mongodb][:shard_name] = "default"
 
+# replica options
+default[:mongodb][:replica_arbiter_only] = false
+default[:mongodb][:replica_build_indexes] = true
+default[:mongodb][:replica_hidden] = false
+default[:mongodb][:replica_slave_delay] = 0
+default[:mongodb][:replica_priority] = 1
+default[:mongodb][:replica_tags] = {}
+default[:mongodb][:replica_votes] = 1
+
 default[:mongodb][:auto_configure][:replicaset] = true
 default[:mongodb][:auto_configure][:sharding] = true
 default[:mongodb][:key_file] = nil

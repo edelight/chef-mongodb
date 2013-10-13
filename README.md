@@ -38,6 +38,13 @@ For examples see the USAGE section below.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
 * `mongodb[:replicaset_name]` - Define name of replicaset
+* `mongodb[:replica_arbiter_only]` - Set to true to make node an [arbiter](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].arbiterOnly).
+* `mongodb[:replica_build_indexes]` - Set to false to omit [index creation](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].buildIndexes).
+* `mongodb[:replica_hidden]` - Set to true to [hide](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].hidden) node from replicaset.
+* `mongodb[:replica_slave_delay]` - Number of seconds to [delay slave replication](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].slaveDelay).
+* `mongodb[:replica_priority]` - Node [priority](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].priority).
+* `mongodb[:replica_tags]` - Node [tags](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].tags).
+* `mongodb[:replica_votes]` - Number of [votes](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].votes) node will cast in an election.
 * `mongodb[:package_version]` - Version of the MongoDB package to install, default is nil
 
 # USAGE:

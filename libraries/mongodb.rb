@@ -52,9 +52,26 @@ class Chef::ResourceDefinitionList::MongoDB
     members << node unless members.any? {|m| m.name == node.name }
     members.sort!{ |x,y| x.name <=> y.name }
     rs_members = []
+    rs_options = {}
     members.each_index do |n|
-      port = members[n]['mongodb']['port']
-      rs_members << {"_id" => n, "host" => "#{members[n]['fqdn']}:#{port}"}
+      host = "#{members[n]['fqdn']}:#{members[n]['mongodb']['port']}"
+      rs_options[host] = {}
+      rs_options[host]['arbiterOnly'] = true if members[n]['mongodb']['replica_arbiter_only']
+      rs_options[host]['buildIndexes'] = false unless members[n]['mongodb']['replica_build_indexes']
+      rs_options[host]['hidden'] = true if members[n]['mongodb']['replica_hidden']
+      slave_delay = members[n]['mongodb']['replica_slave_delay']
+      rs_options[host]['slaveDelay'] = slave_delay if slave_delay > 0
+      if rs_options[host]['buildIndexes'] == false or rs_options[host]['hidden'] or rs_options[host]['slaveDelay']
+        priority = 0
+      else
+        priority = members[n]['mongodb']['replica_priority']
+      end
+      rs_options[host]['priority'] = priority unless priority == 1
+      tags = members[n]['mongodb']['replica_tags'].to_hash
+      rs_options[host]['tags'] = tags unless tags.empty?
+      votes = members[n]['mongodb']['replica_votes']
+      rs_options[host]['votes'] = votes unless votes == 1
+      rs_members << {"_id" => n, "host" => host}.merge(rs_options[host])
     end
 
 
@@ -110,7 +127,10 @@ class Chef::ResourceDefinitionList::MongoDB
             end
           end
         end
-        config['members'].collect!{ |m| {"_id" => m["_id"], "host" => mapping[m["host"]]} }
+        config['members'].collect! do |m|
+          host = mapping[m["host"]]
+          {"_id" => m["_id"], "host" => host}.merge(rs_options[host])
+        end
         config['version'] += 1
 
 
@@ -129,7 +149,7 @@ class Chef::ResourceDefinitionList::MongoDB
           result = admin.command(cmd, :check_response => false)
         rescue Mongo::ConnectionFailure
           # reconfiguring destroys exisiting connections, reconnect
-          Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
+          connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
           config = connection['local']['system']['replset'].find_one({"_id" => name})
           Chef::Log.info("New config successfully applied: #{config.inspect}")
         end
@@ -144,10 +164,14 @@ class Chef::ResourceDefinitionList::MongoDB
         old_members = config['members'].collect{ |member| member['host'] }
         members_delete = old_members - rs_members
         config['members'] = config['members'].delete_if{ |m| members_delete.include?(m['host']) }
+        config['members'].collect! do |m|
+          host = m['host']
+          {"_id" => m['_id'], "host" => host}.merge(rs_options[host])
+        end
         members_add = rs_members - old_members
         members_add.each do |m|
           max_id += 1
-          config['members'] << {"_id" => max_id, "host" => m}
+          config['members'] << {"_id" => max_id, "host" => m}.merge(rs_options[m])
         end
 
         rs_connection = nil
@@ -166,11 +190,11 @@ class Chef::ResourceDefinitionList::MongoDB
           result = admin.command(cmd, :check_response => false)
         rescue Mongo::ConnectionFailure
           # reconfiguring destroys exisiting connections, reconnect
-          Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
+          connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
           config = connection['local']['system']['replset'].find_one({"_id" => name})
           Chef::Log.info("New config successfully applied: #{config.inspect}")
         end
-        if !result.fetch("errmsg", nil).nil?
+        unless result.nil? or result.fetch("errmsg", nil).nil?
           Chef::Log.error("configuring replicaset returned: #{result.inspect}")
         end
       end
