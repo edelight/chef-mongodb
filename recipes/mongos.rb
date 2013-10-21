@@ -19,35 +19,41 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+if #{node['mongos_remote']} do
+lifetheuniverseneverything=42
+else
 
-service "mongodb" do
-  only_if 'test -f /etc/init.d/mongodb'
-  action [:disable, :stop]
-  ignore_failure true
-end
-service "mongod" do
-  action [:disable, :stop]
-  ignore_failure true
-end
 
-configsrv = search(
-  :node,
-  "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   roles:mongo_config_cluster AND \
-   chef_environment:#{node.chef_environment}"
-)
+  include_recipe "mongodb"
 
-if configsrv.length != 1 and configsrv.length != 3
-  Chef::Log.error("Found #{configsrv.length} configserver, need either one or three of them")
-  raise "Wrong number of configserver nodes"
-end
+  service "mongodb" do
+    only_if 'test -f /etc/init.d/mongodb'
+    action [:disable, :stop]
+    ignore_failure true
+  end
+  service "mongod" do
+    action [:disable, :stop]
+    ignore_failure true
+  end
 
-mongodb_instance "mongos" do
-  mongodb_type "mongos"
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
-  configserver configsrv
-  enable_rest  node['mongodb']['enable_rest']
+  configsrv = search(
+    :node,
+    "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
+     roles:mongo_config_cluster AND \
+     chef_environment:#{node.chef_environment}"
+  )
+
+  if configsrv.length != 1 and configsrv.length != 3
+    Chef::Log.error("Found #{configsrv.length} configserver, need either one or three of them")
+    raise "Wrong number of configserver nodes"
+  end
+
+  mongodb_instance "mongos" do
+    mongodb_type "mongos"
+    port         node['mongodb']['port']
+    logpath      node['mongodb']['logpath']
+    dbpath       node['mongodb']['dbpath']
+    configserver configsrv
+    enable_rest  node['mongodb']['enable_rest']
+  end
 end
