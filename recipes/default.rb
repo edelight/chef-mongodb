@@ -19,6 +19,12 @@
 # limitations under the License.
 #
 
+file "/etc/default/mongodb" do
+  action :create_if_missing
+  owner "root"
+  content "ENABLE_MONGODB=no"
+end
+
 package node[:mongodb][:package_name] do
   action :install
   version node[:mongodb][:package_version]
