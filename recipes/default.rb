@@ -19,9 +19,24 @@
 # limitations under the License.
 #
 
+# note that this must be called "mongodb"
+# this has been filed as https://tickets.opscode.com/browse/CHEF-4699
+service "mongodb" do
+ action :nothing
+end
+
 package node[:mongodb][:package_name] do
   action :install
   version node[:mongodb][:package_version]
+  # the 10gen deb package automatically starts mongo, which blocks other
+  # services enabled by this cookbook because of the mongod.lock file.
+  # it should be disabled immediately instead of waiting on the queue
+  # only been tested on ubuntu 12.04 (and also might only be an issue on debian
+  # in general)
+  if platform_family?("debian")
+    notifies :stop, "service[mongodb]", :immediately
+    notifies :disable, "service[mongodb]", :immediately
+  end
 end
 
 
