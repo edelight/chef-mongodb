@@ -83,6 +83,7 @@ else
   default[:mongodb][:package_name] = "mongodb-10gen"
   default[:mongodb][:apt_repo] = "debian-sysvinit"
   default[:mongodb][:instance_name] = "mongodb"
+  default[:mongodb][:prevent_startup] = false
 
 end
 
