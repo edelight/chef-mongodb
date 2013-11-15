@@ -19,6 +19,18 @@
 # limitations under the License.
 #
 
+if node[:mongodb][:prevent_startup]
+  if node['platform_family'] = "debian"
+    file "/etc/default/mongodb" do
+      action :create_if_missing
+      owner "root"
+      content "ENABLE_MONGODB=no"
+    end
+  else
+    Chef::Log.warn("Mongodb does not support ENABLE_MONGODB option to prevent startup for #{node['platform_family']}.")
+  end
+end
+
 package node[:mongodb][:package_name] do
   action :install
   version node[:mongodb][:package_version]
