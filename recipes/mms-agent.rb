@@ -14,7 +14,9 @@ chef_gem 'rubyzip'
 # munin-node for hardware info
 package 'munin-node'
 # python dependencies
-python_pip 'pymongo'
+python_pip 'pymongo' do
+  action :install
+end
 
 # download, and unzip if it's changed
 package 'unzip'
