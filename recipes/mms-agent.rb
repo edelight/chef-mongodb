@@ -19,7 +19,7 @@ python_pip 'pymongo'
 # download, and unzip if it's changed
 package 'unzip'
 remote_file '/tmp/10gen-mms-agent.zip' do
-  source 'https://mms.10gen.com/settings/10gen-mms-agent.zip'
+  source node['mongodb']['mms_agent']['source_uri']
   # irrelevant because of https://jira.mongodb.org/browse/MMSSUPPORT-2258
   checksum node.mongodb.mms_agent.checksum if node.mongodb.mms_agent.key?(:checksum)
   notifies :run, "bash[unzip 10gen-mms-agent]", :immediately
