@@ -39,7 +39,10 @@ template init_file do
     action :create_if_missing
 end
 
-packager_opts = ""
+# Remove --nogpgcheck option when package is signed
+# see: https://jira.mongodb.org/browse/SERVER-8770
+packager_opts = "--nogpgcheck"
+
 case node['platform_family']
 when "debian"
     # this options lets us bypass complaint of pre-existing init file
