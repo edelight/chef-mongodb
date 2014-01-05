@@ -47,6 +47,17 @@ when "debian"
     packager_opts = '-o Dpkg::Options::="--force-confold"'
 end
 
+# Create keyFile if specified
+if node[:mongodb][:key_file_content] then
+  file node[:mongodb][:config][:keyFile] do
+    owner node[:mongodb][:user]
+    group node[:mongodb][:group]
+    mode  "0600"
+    backup false
+    content node[:mongodb][:key_file_content]
+  end
+end
+
 # install
 package node[:mongodb][:package_name] do
     options packager_opts

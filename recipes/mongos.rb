@@ -19,31 +19,9 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb"
+include_recipe "mongodb::install"
 include_recipe "mongodb::mongo_gem"
 
-service "mongodb" do
-  action [:disable, :stop]
-end
-
-configsrv = search(
-  :node,
-  "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   recipes:mongodb\\:\\:configserver AND \
-   chef_environment:#{node.chef_environment}"
-)
-
-if configsrv.length != 1 and configsrv.length != 3
-  Chef::Log.error("Found #{configsrv.length} configserver, need either one or three of them")
-  raise "Wrong number of configserver nodes"
-end
-
-mongodb_instance "mongos" do
-  mongodb_type "mongos"
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
-  configserver configsrv
-  enable_rest  node['mongodb']['enable_rest']
-  smallfiles   node['mongodb']['smallfiles']
+mongodb_mongos_instance "mongos" do
+  action [:enable, :start]
 end

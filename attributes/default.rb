@@ -59,6 +59,11 @@ default[:mongodb][:instance_name] = "mongodb"
 # this option can be "distro" or "10gen"
 default[:mongodb][:install_method] = "distro"
 
+
+default[:mongodb][:is_replicaset] = nil
+default[:mongodb][:is_shard] = nil
+default[:mongodb][:is_configserver] = nil
+
 case node['platform_family']
 when "freebsd"
   default[:mongodb][:package_name] = "mongo-10gen-server"

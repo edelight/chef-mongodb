@@ -21,32 +21,6 @@
 
 include_recipe "mongodb::install"
 
-# Create keyFile if specified
-if node[:mongodb][:key_file_content] then
-  file node[:mongodb][:config][:keyFile] do
-    owner node[:mongodb][:user]
-    group node[:mongodb][:group]
-    mode  "0600"
-    backup false
-    content node[:mongodb][:key_file_content]
-  end
-end
-
-# configure default instance
-replicaset_recipe = 'mongodb::replicaset'
-configured_as_replicaset = case Chef::Version.new(Chef::VERSION).major
-  when 0..10 then node.recipe?(replicaset_recipe)
-  else node.run_context.loaded_recipe?(replicaset_recipe)
-end
-
-unless configured_as_replicaset
-  mongodb_instance node['mongodb']['instance_name'] do
-    mongodb_type "mongod"
-    bind_ip      node['mongodb']['bind_ip']
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-    enable_rest  node['mongodb']['enable_rest']
-    smallfiles   node['mongodb']['smallfiles']
-  end
+mongodb_mongod_instance node['mongodb']['instance_name'] do
+  action [:enable, :start]
 end
