@@ -26,7 +26,8 @@ The cookbook aims to be platform independent, but is best tested on debian squee
 
 The `10gen_repo` recipe configures the package manager to use 10gen's
 official package repositories on Debian, Ubuntu, Redhat, CentOS, Fedora, and
-Amazon linux distributions.
+Amazon linux distributions. `10gen_repo` does not currently support
+Ubuntu 10.04.
 
 # DEFINITIONS:
 
@@ -72,7 +73,8 @@ For examples see the USAGE section below.
 ## 10gen repository
 
 Adds the stable [10gen repo](http://www.mongodb.org/downloads#packages) for the
-corresponding platform. Currently only implemented for the Debian and Ubuntu repository.
+corresponding platform. Currently only implemented for the Debian and
+Ubuntu repository. Does not work for Ubuntu 10.04 (Lucid).
 
 Usage: just add `recipe[mongodb::10gen_repo]` to the node run_list *before* any other
 MongoDB recipe, and the mongodb-10gen **stable** packages will be installed instead of the distribution default.
