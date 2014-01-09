@@ -21,7 +21,7 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start], :port => 27017 , \
     :logpath => nil, :dbpath => "/data/mongodb", :configfile => "/etc/mongodb.conf", \
-    :configserver => [], :replicaset => nil, :enable_rest => false, \
+    :configserver => [], :replicaset => nil, :enable_rest => false, :mongos_dependent_app => nil, \
     :notifies => [] do
     
   include_recipe "mongodb::default"
@@ -138,21 +138,36 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
 
   # Setup Upstart Config File
-  # (use logpath, not logfile)
-  template "#{upstartfile}" do
-    action :create
-    source "mongodb.upstart.erb"
-    group node['mongodb']['root_group']
-    owner "root"
-    mode 0644
-    variables(
-      "daemon" => daemon,
-      "dbpath" => dbpath,
-      "mnt_point" => mnt_point,
-      "setra" => setra,
-      "raid" => node[:mongodb][:raid]
-    )
-  end
+  if type != "mongos"
+     template "#{upstartfile}" do
+       action :create
+       source "mongodb.upstart.erb"
+       group node['mongodb']['root_group']
+       owner "root"
+       mode 0644
+       variables(
+	 "daemon" => daemon,
+	 "configfile" => configfile,
+	 "dbpath" => dbpath,
+	 "mnt_point" => mnt_point,
+	 "setra" => setra,
+	 "raid" => node[:mongodb][:raid]
+       )
+     end
+   else
+     template "#{upstartfile}" do
+       action :create
+       source "mongos.upstart.erb"
+       group node['mongodb']['root_group']
+       owner "root"
+       mode 0644
+       variables(
+	 "daemon" => daemon,
+	 "configfile" => configfile,
+	 "mongos_dependent_app" => params[:mongos_dependent_app],
+       )
+     end
+   end
 
   #
   # Install upstart-job link 
@@ -226,9 +241,9 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
 	   if type == "mongos"
              Chef::Log.info("Waiting 30s for DB to start...")
              sleep(30)
-             Chef::Log.info("Adding shard nodes...")
-	     MongoDB.configure_shards(node, shard_nodes)
              if not node['mongodb']['sharded_collections'].nil?
+		Chef::Log.info("Adding shard nodes...")
+		MongoDB.configure_shards(node, shard_nodes)
                 Chef::Log.info("Sharding collections...")
 	        MongoDB.configure_sharded_collections(node, node['mongodb']['sharded_collections'])
              else

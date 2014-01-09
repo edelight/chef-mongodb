@@ -21,4 +21,4 @@ end script
 start on runlevel [2345]
 stop on runlevel [06]
 
-exec sudo -u mongodb <%= @daemon ? "#{@daemon}" : "/usr/bin/mongod" %> --config /etc/mongodb.conf
+exec sudo -u mongodb <%= @daemon ? "#{@daemon}" : "/usr/bin/mongod" %> --config <%= @configfile ? "#{@configfile}" : "/etc/mongodb.conf" %>

@@ -1,0 +1,14 @@
+ 
+limit nofile 64000 64000
+
+kill timeout 30 # wait 30s between SIGTERM and SIGKILL.
+
+<% if @mongos_dependent_app.nil? -%>
+   start on runlevel [2345]
+   stop on runlevel [06]
+<% else -%>
+   start on starting <%= @mongos_dependent_app %>
+   stop on stopping <%= @mongos_dependent_app %>
+<% end -%>
+
+exec sudo -u mongodb <%= @daemon ? "#{@daemon}" : "/usr/bin/mongod" %> --config <%= @configfile ? "#{@configfile}" : "/etc/mongodb.conf" %>
