@@ -25,15 +25,27 @@ if node[:cloud] and
 
    include_recipe 'aws'
 
-   aws_ebs_raid "data_raid" do
-      level node[:mongodb][:raid_level]
-      disk_count node[:mongodb][:raid_disk_count]
-      disk_size node[:mongodb][:raid_disk_size]
-      disk_type node[:mongodb][:raid_ebs_type]
-      disk_piops node[:mongodb][:raid_ebs_piops]
-      mount_point node[:mongodb][:raid_mount]
-      snapshots node[:mongodb][:raid_snaps]
-      action [ :auto_attach ]
+   if node[:mongodb][:raid_ebs_type] == 'io1' then
+      aws_ebs_raid "data_raid" do
+	 level node[:mongodb][:raid_level]
+	 disk_count node[:mongodb][:raid_disk_count]
+	 disk_size node[:mongodb][:raid_disk_size]
+	 disk_type node[:mongodb][:raid_ebs_type]
+	 disk_piops node[:mongodb][:raid_ebs_piops]
+	 mount_point node[:mongodb][:raid_mount]
+	 snapshots node[:mongodb][:raid_snaps]
+	 action [ :auto_attach ]
+      end
+   else
+      aws_ebs_raid "data_raid" do
+	 level node[:mongodb][:raid_level]
+	 disk_count node[:mongodb][:raid_disk_count]
+	 disk_size node[:mongodb][:raid_disk_size]
+	 disk_type node[:mongodb][:raid_ebs_type]
+	 mount_point node[:mongodb][:raid_mount]
+	 snapshots node[:mongodb][:raid_snaps]
+	 action [ :auto_attach ]
+      end
    end
 
    if node[:mongodb][:encfs] then
