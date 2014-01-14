@@ -63,6 +63,7 @@ define :mongodb_instance,
   new_resource.sysconfig_file_template    = node['mongodb']['sysconfig_file_template']
   new_resource.sysconfig_vars             = node['mongodb']['sysconfig']
   new_resource.template_cookbook          = node['mongodb']['template_cookbook']
+  new_resource.logrotate                  = node['mongodb']['logrotate']
 
   if node['mongodb']['apt_repo'] == "ubuntu-upstart" then
     new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
@@ -225,6 +226,18 @@ define :mongodb_instance,
         end
       end
       action :nothing
+    end
+  end
+
+  # logrotate
+  if new_resource.logrotate
+    logrotate_app new_resource.name do
+      cookbook "logrotate"
+      path node[:mongodb][:config][:logpath]
+      frequency "daily"
+      rotate 28
+      postrotate ["killall -SIGUSR1 mongod", "find #{new_resource.logpath} -type f -regex '.*\\.\\(log.[0-9].*-[0-9].*\\)' -exec rm {} \\;"]
+      options ["missingok", "notifempty", "copytruncate", "compress", "dateext"]
     end
   end
 end
