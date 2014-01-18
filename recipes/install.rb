@@ -18,6 +18,9 @@ template node['mongodb']['dbconfig_file'] do
     group node['mongodb']['root_group']
     owner "root"
     mode 0644
+    variables(
+      config: node['mongodb']['config']
+    )
     action :create_if_missing
 end
 
@@ -33,9 +36,13 @@ template init_file do
     group node['mongodb']['root_group']
     owner "root"
     mode "0755"
-    variables({
-        :provides => "mongod"
-    })
+    variables(
+      provides:        "mongod",
+      sysconfig_file:  node['mongodb']['sysconfig_file'],
+      ulimit:          node['mongodb']['ulimit'],
+      bind_ip:         node['mongodb']['config']['bind_ip'],
+      port:            node['mongodb']['config']['port']
+    )
     action :create_if_missing
 end
 

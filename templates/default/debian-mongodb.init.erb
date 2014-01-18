@@ -54,15 +54,15 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DESC=database
 PIDFILE=/var/run/$NAME.pid
 ENABLE_MONGODB=yes
-SYSCONFIG=<%= node['mongodb']['sysconfig_file'] %>
+SYSCONFIG=<%= @sysconfig_file %>
 
 # this should get removed at some point for more shell agnostic init script
-ulimit -f <%= node.mongodb.ulimit.fsize %>
-ulimit -t <%= node.mongodb.ulimit.cpu %>
-ulimit -v <%= node.mongodb.ulimit.as %>
-ulimit -n <%= node.mongodb.ulimit.nofile %>
-ulimit -m <%= node.mongodb.ulimit.rss %>
-ulimit -u <%= node.mongodb.ulimit.nproc %>
+ulimit -f <%= @ulimit['fsize'] %>
+ulimit -t <%= @ulimit['cpu'] %>
+ulimit -v <%= @ulimit['as'] %>
+ulimit -n <%= @ulimit['nofile'] %>
+ulimit -m <%= @ulimit['rss'] %>
+ulimit -u <%= @ulimit['nproc'] %>
 
 # Include mongodb defaults if available
 if [ -f $SYSCONFIG ] ; then
@@ -127,7 +127,7 @@ running() {
     pid=`cat $PIDFILE`
     running_pid $pid $DAEMON || return 1
     for i in `seq 1 20`; do
-      nc -z <%= node['mongodb']['config']['bind_ip'] || "localhost" %> <%= node['mongodb']['config']['port'] %> && return 0
+      nc -z <%= @bind_ip %> <%= @port %> && return 0
       echo -n "."
       sleep 15
     done

@@ -11,7 +11,7 @@
 . /etc/rc.d/init.d/functions
 
 NAME=<%= @provides %>
-SYSCONFIG=<%= node['mongodb']['sysconfig_file'] %>
+SYSCONFIG=<%= @sysconfig_file %>
 DAEMON_USER=mongod
 ENABLE_MONGODB=yes
 
@@ -64,12 +64,12 @@ restart () {
   start
 }
 
-ulimit -f <%= node.mongodb.ulimit.fsize %>
-ulimit -t <%= node.mongodb.ulimit.cpu %>
-ulimit -v <%= node.mongodb.ulimit.as %>
-ulimit -n <%= node.mongodb.ulimit.nofile %>
-ulimit -m <%= node.mongodb.ulimit.rss %>
-ulimit -u <%= node.mongodb.ulimit.nproc %>
+ulimit -f <%= @ulimit['fsize'] %>
+ulimit -t <%= @ulimit['cpu'] %>
+ulimit -v <%= @ulimit['as'] %>
+ulimit -n <%= @ulimit['nofile'] %>
+ulimit -m <%= @ulimit['rss'] %>
+ulimit -u <%= @ulimit['nproc'] %>
 
 RETVAL=0
 

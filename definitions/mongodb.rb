@@ -50,19 +50,23 @@ define :mongodb_instance,
   # TODO(jh): parameterize so we can make a resource provider
   new_resource.auto_configure_replicaset  = node['mongodb']['auto_configure']['replicaset']
   new_resource.auto_configure_sharding    = node['mongodb']['auto_configure']['sharding']
+  new_resource.bind_ip                    = node['mongodb']['config']['bind_ip']
   new_resource.cluster_name               = node['mongodb']['cluster_name']
+  new_resource.config                     = node['mongodb']['config']
   new_resource.dbconfig_file              = node['mongodb']['dbconfig_file']
   new_resource.dbconfig_file_template     = node['mongodb']['dbconfig_file_template']
   new_resource.init_dir                   = node['mongodb']['init_dir']
   new_resource.init_script_template       = node['mongodb']['init_script_template']
   new_resource.mongodb_group              = node['mongodb']['group']
   new_resource.mongodb_user               = node['mongodb']['user']
+  new_resource.port                       = node['mongodb']['config']['port']
   new_resource.root_group                 = node['mongodb']['root_group']
   new_resource.sharded_collections        = node['mongodb']['sharded_collections']
   new_resource.sysconfig_file             = node['mongodb']['sysconfig_file']
   new_resource.sysconfig_file_template    = node['mongodb']['sysconfig_file_template']
   new_resource.sysconfig_vars             = node['mongodb']['sysconfig']
   new_resource.template_cookbook          = node['mongodb']['template_cookbook']
+  new_resource.ulimit                     = node['mongodb']['ulimit']
 
   if node['mongodb']['apt_repo'] == "ubuntu-upstart" then
     new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
@@ -121,6 +125,9 @@ define :mongodb_instance,
     source new_resource.dbconfig_file_template
     group new_resource.root_group
     owner "root"
+    variables(
+      config: new_resource.config
+    )
     mode "0644"
   end
 
@@ -152,9 +159,13 @@ define :mongodb_instance,
     group new_resource.root_group
     owner "root"
     mode "0755"
-    variables({
-        :provides => provider
-    })
+    variables(
+      provides:        provider,
+      sysconfig_file:  new_resource.sysconfig_file,
+      ulimit:          new_resource.ulimit,
+      bind_ip:         new_resource.bind_ip,
+      port:            new_resource.port
+    )
     notifies :restart, "service[#{new_resource.name}]"
   end
 
