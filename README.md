@@ -38,6 +38,8 @@ For examples see the USAGE section below.
 
 # ATTRIBUTES:
 
+* `mongodb[:reload_action]` - Action to take when MongoDB conf files are
+    modified, default is `"restart"`
 * `mongodb[:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
 * `mongodb[:logpath]` - Path for the logfiles, default is "/var/log/mongodb"
 * `mongodb[:port]` - Port the mongod listens on, default is 27017

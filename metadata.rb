@@ -37,6 +37,11 @@ attribute "mongodb/port",
   :description => "Port the mongodb instance is running on",
   :default => "27017"
 
+attribute "mongodb/reload_action",
+  :display_name => "MongoDB conf file reload action",
+  :description => "Action to take when MongoDB conf files are modified",
+  :default => "restart"
+
 attribute "mongodb/client_roles",
   :display_name => "Client Roles",
   :description => "Roles of nodes who need access to the mongodb instance",
