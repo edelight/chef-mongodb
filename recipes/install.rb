@@ -11,6 +11,15 @@ file node['mongodb']['sysconfig_file'] do
     action :create_if_missing
 end
 
+if node['mongodb']['replicaset_name'].nil? && node.mongodb.is_replicaset
+  if node.mongodb.is_shard
+    node.default['mongodb']['config']['replSet'] = "rs_#{node['mongodb']['shard_name']}"
+  else
+    node.default['mongodb']['config']['replSet'] = 'rs_default'
+  end
+end
+
+
 # just-in-case config file drop
 template node['mongodb']['dbconfig_file'] do
     cookbook node['mongodb']['template_cookbook']
