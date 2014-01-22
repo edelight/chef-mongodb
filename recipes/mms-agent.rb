@@ -80,7 +80,6 @@ ruby_block 'modify settings.py' do
     }
     s = orig_s
     s = s.gsub(/mms_key = ".*"/, "mms_key = \"#{node.mongodb.mms_agent.api_key}\"")
-    s = s.gsub(/secret_key = ".*"/, "secret_key = \"#{node.mongodb.mms_agent.secret_key}\"")
     # python uses True/False not true/false
     s = s.gsub(/enableMunin = .*/, "enableMunin = #{node.mongodb.mms_agent.enable_munin ? "True" : "False"}")
     s = s.gsub(/sslRequireValidServerCertificates = .*/, "sslRequireValidServerCertificates = #{node.mongodb.mms_agent.ssl_require_valid_server_certificates ? "True" : "False"}")
