@@ -13,3 +13,4 @@ default[:mongodb][:mms_agent][:install_munin] = true
 # this is the debian package name
 default[:mongodb][:mms_agent][:munin_package] = 'munin-node'
 default[:mongodb][:mms_agent][:enable_munin] = true
+default[:mongodb][:mms_agent][:ssl_require_valid_server_certificates] = false
