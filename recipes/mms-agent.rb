@@ -83,6 +83,7 @@ ruby_block 'modify settings.py' do
     s = s.gsub(/secret_key = ".*"/, "secret_key = \"#{node.mongodb.mms_agent.secret_key}\"")
     # python uses True/False not true/false
     s = s.gsub(/enableMunin = .*/, "enableMunin = #{node.mongodb.mms_agent.enable_munin ? "True" : "False"}")
+    s = s.gsub(/sslRequireValidServerCertificates = .*/, "sslRequireValidServerCertificates = #{node.mongodb.mms_agent.ssl_require_valid_server_certificates ? "True" : "False"}")
     if s != orig_s
       Chef::Log.debug "Settings changed, overwriting and restarting service"
       open("#{node.mongodb.mms_agent.install_dir}/settings.py", 'w') { |f|
