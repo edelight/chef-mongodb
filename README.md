@@ -178,9 +178,8 @@ for tackling MongoDB related problems, so MMS is the baseline for all
 production MongoDB deployments.
 
 
-To setup MMS, simply set your keys in
-`node['mongodb']['mms_agent']['api_key']` and
-`node['mongodb']['mms_agent']['secret_key']`, then add the
+To setup MMS, simply set your key in
+`node['mongodb']['mms_agent']['api_key']`, then add the
 `mongodb::mms-agent` recipe to your run list. Your current keys should
 be available at your {MMS Settings page}[https://mms.10gen.com/settings].
 
