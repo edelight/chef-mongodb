@@ -100,9 +100,6 @@ attribute "mongodb/mms_agent",
 attribute "mongodb/mms_agent/api_key",
   :display_name => "MMS Agent API Key"
 
-attribute "mongodb/mms_agent/secret_key",
-  :display_name => "MMS Agent Secret Key"
-
 attribute "mongodb/oplog_size",
   :display_name => "oplogSize",
   :description => "Specifies a maximum size in megabytes for the replication operation log",
