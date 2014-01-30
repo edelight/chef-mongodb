@@ -105,7 +105,7 @@ end
 
 default[:mongodb][:package_version] = nil
 default[:mongodb][:template_cookbook] = "mongodb"
-
+default[:mongodb][:directoryperdb] = false
 # These options are being deprecated (see dbconfig.rb)
 default[:mongodb][:port] = 27017
 default[:mongodb][:bind_ip] = nil

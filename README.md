@@ -45,6 +45,7 @@ For examples see the USAGE section below.
 * `mongodb[:port]` - Port the mongod listens on, default is 27017
 * `mongodb[:enable_rest]` - Enable the ReST interface of the webserver
 * `mongodb[:smallfiles]` - Modify MongoDB to use a smaller default data file size
+* `mongodb[:directoryperd]` - Modiy MongoDB to store each database’s files in a distinct folder
 * `mongodb[:oplog_size]` - Specifies a maximum size in megabytes for the replication operation log
 * `mongodb[:client_role]` - Role identifying all external clients which should have access to a mongod instance
 * `mongodb[:cluster_name]` - Name of the cluster, all members of the cluster must
