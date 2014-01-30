@@ -25,11 +25,12 @@ include_recipe "mongodb::mongo_gem"
 unless node.mongodb.is_shard
   mongodb_instance node['mongodb']['instance_name'] do
     mongodb_type "mongod"
-    port         node['mongodb']['port']
-    logpath      node['mongodb']['logpath']
-    dbpath       node['mongodb']['dbpath']
-    replicaset   node
-    enable_rest  node['mongodb']['enable_rest']
-    smallfiles   node['mongodb']['smallfiles']
+    port            node['mongodb']['port']
+    logpath         node['mongodb']['logpath']
+    dbpath          node['mongodb']['dbpath']
+    replicaset      node
+    enable_rest     node['mongodb']['enable_rest']
+    smallfiles      node['mongodb']['smallfiles']
+    directoryperdb  node['mongodb']['directoryperdb']
   end
 end

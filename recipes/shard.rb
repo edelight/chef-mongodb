@@ -28,12 +28,13 @@ include_recipe "mongodb::install"
 # running on, and we are overwriting this port anyway.
 mongodb_instance node['mongodb']['instance_name'] do
   mongodb_type "shard"
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
+  port            node['mongodb']['port']
+  logpath         node['mongodb']['logpath']
+  dbpath          node['mongodb']['dbpath']
   if node.mongodb.is_replicaset
     replicaset    node
   end
-  enable_rest node['mongodb']['enable_rest']
-  smallfiles   node['mongodb']['smallfiles']
+  enable_rest     node['mongodb']['enable_rest']
+  smallfiles      node['mongodb']['smallfiles']
+  directoryperdb  node['mongodb']['directoryperdb']
 end

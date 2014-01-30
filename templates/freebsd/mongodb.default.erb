@@ -36,4 +36,8 @@ DAEMON_OPTS="$DAEMON_OPTS --rest"
 DAEMON_OPTS="$DAEMON_OPTS --smallfiles"
 <% end %>
 
+<% if @directoryperdb %>
+DAEMON_OPTS="$DAEMON_OPTS --directoryperdb"
+<% end %>
+
 <%= @name %>_command_args="$DAEMON_OPTS"
