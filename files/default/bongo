@@ -139,13 +139,13 @@ def whoami():
    try:
       fqdn = getfqdn()
    except Exception as e:
-      log.warning("can't get my FQDN: %s" % e)
+      logging.warning("can't get my FQDN: %s" % e)
    try:
       ip = ""
       if fqdn:
          ip = gethostbyname(fqdn)
    except Exception as e:
-      log.warning("can't get my IP: %s" % e)
+      logging.warning("can't get my IP: %s" % e)
    if fqdn and ip:
       whoami = "%s (%s)" % (fqdn, ip)
    elif fqdn:
@@ -154,7 +154,7 @@ def whoami():
       whoami = ip
    else:
       whoami = None
-      log.warning("I don't know who I am!")
+      logging.warning("I don't know who I am!")
    return whoami
 
 
@@ -426,7 +426,7 @@ def mongos_controller(db, zk_root, zk_servers, clean_days):
          logging.info("mongos_controller: starting balancer")
          db.start_balancer()
       else:
-         log.warning("mongos_controller: leaving cluster balancer "
+         logging.warning("mongos_controller: leaving cluster balancer "
                      "disabled (as I found it)")
 
       bz.notify(event.BalancerStarted)
