@@ -17,7 +17,7 @@ recipe "mongodb::backup", "Installs and configures mongodb cluster backup softwa
 end
 
 depends "tealium_encfs", "= 0.1.0"
-depends "tealium_bongo", "= 0.1.2"
+depends "tealium_bongo", "= 0.1.3"
 
 %w{ ubuntu }.each do |os|
   supports os
