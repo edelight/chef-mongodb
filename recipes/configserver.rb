@@ -28,9 +28,9 @@ include_recipe 'mongodb::install'
 # we still explicitly set the port and small files.
 mongodb_instance node['mongodb']['instance_name'] do
   mongodb_type 'configserver'
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
-  enable_rest  node['mongodb']['enable_rest']
-  smallfiles   node['mongodb']['smallfiles']
+  port         node['mongodb']['config']['port']
+  logpath      node['mongodb']['config']['logpath']
+  dbpath       node['mongodb']['config']['dbpath']
+  enable_rest  node['mongodb']['config']['rest']
+  smallfiles   node['mongodb']['config']['smallfiles']
 end

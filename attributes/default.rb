@@ -18,7 +18,7 @@
 #
 
 # this variable is being renamed to dbconfig_file
-default[:mongodb][:configfile] = '/etc/mongodb.conf'
+default[:mongodb][:dbconfig_file] = '/etc/mongodb.conf'
 
 # cluster identifier
 default[:mongodb][:client_roles] = []
@@ -102,17 +102,6 @@ end
 
 default[:mongodb][:package_version] = nil
 default[:mongodb][:template_cookbook] = 'mongodb'
-
-# These options are being deprecated (see dbconfig.rb)
-default[:mongodb][:port] = 27017
-default[:mongodb][:bind_ip] = nil
-default[:mongodb][:logpath] = '/var/log/mongodb'
-default[:mongodb][:dbpath] = '/var/lib/mongodb'
-default[:mongodb][:nojournal] = false
-default[:mongodb][:enable_rest] = false # rest
-default[:mongodb][:smallfiles] = false
-default[:mongodb][:oplog_size] = nil # opslogSize
-default[:mongodb][:replicaset_name] = nil # replSet
 
 # name is being clarified
 default[:mongodb][:key_file] = nil # keyFile's contents

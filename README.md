@@ -38,21 +38,34 @@ For examples see the USAGE section below.
 
 # ATTRIBUTES:
 
+## Mongodb Configuration 
+
+Basically all settings defined in the Configuration File Options documentation page can be added to the `mongodb[:config][:<setting>]` attribute: http://docs.mongodb.org/manual/reference/configuration-options/ 
+
+* `mongodb[:config][:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
+* `mongodb[:config][:logpath]` - Path for the logfiles, default is "/var/log/mongodb/mongodb.log"
+* `mongodb[:config][:port]` - Port the mongod listens on, default is 27017
+* `mongodb[:config][:rest]` - Enable the ReST interface of the webserver
+* `mongodb[:config][:smallfiles]` - Modify MongoDB to use a smaller default data file size
+* `mongodb[:config][:oplogsize]` - Specifies a maximum size in megabytes for the replication operation log
+* `mongodb[:config][:bind_ip]` - Configure from which address to accept connections
+* `mongodb[:config][:<setting>]` - General MongoDB Configuration File option
+
+## Cookbook specific attributes
+
 * `mongodb[:reload_action]` - Action to take when MongoDB conf files are
     modified, default is `"restart"`
-* `mongodb[:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
-* `mongodb[:logpath]` - Path for the logfiles, default is "/var/log/mongodb"
-* `mongodb[:port]` - Port the mongod listens on, default is 27017
-* `mongodb[:enable_rest]` - Enable the ReST interface of the webserver
-* `mongodb[:smallfiles]` - Modify MongoDB to use a smaller default data file size
-* `mongodb[:oplog_size]` - Specifies a maximum size in megabytes for the replication operation log
+* `mongodb[:package_version]` - Version of the MongoDB package to install, default is nil
 * `mongodb[:client_role]` - Role identifying all external clients which should have access to a mongod instance
+
+## Sharding and replication attributes
+
+* `mongodb[:config][:replSet]` - Define name of replicaset
 * `mongodb[:cluster_name]` - Name of the cluster, all members of the cluster must
     reference to the same name, as this name is used internally to identify all
     members of a cluster.
 * `mongodb[:shard_name]` - Name of a shard, default is "default"
 * `mongodb[:sharded_collections]` - Define which collections are sharded
-* `mongodb[:replicaset_name]` - Define name of replicaset
 * `mongodb[:replica_arbiter_only]` - Set to true to make node an [arbiter](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].arbiterOnly).
 * `mongodb[:replica_build_indexes]` - Set to false to omit [index creation](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].buildIndexes).
 * `mongodb[:replica_hidden]` - Set to true to [hide](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].hidden) node from replicaset.
@@ -60,7 +73,9 @@ For examples see the USAGE section below.
 * `mongodb[:replica_priority]` - Node [priority](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].priority).
 * `mongodb[:replica_tags]` - Node [tags](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].tags).
 * `mongodb[:replica_votes]` - Number of [votes](http://docs.mongodb.org/manual/reference/replica-configuration/#local.system.replset.members[n].votes) node will cast in an election.
-* `mongodb[:package_version]` - Version of the MongoDB package to install, default is nil
+
+
+## MMS Agent attributes
 * `mongodb[:mms_agent][:api_key]` - MMS Agent API Key
 * `mongodb[:mms_agent][:mms_server]` - MMS Server (default: `https://mms.mongodb.com`)
 * `mongodb[:mms_agent][:require_valid_server_cert]` - Require valid server certificate (default: `false`)
@@ -72,8 +87,7 @@ For examples see the USAGE section below.
 
 # USAGE:
 
-## 10gen repository
-
+## 10gen
 Adds the stable [10gen repo](http://www.mongodb.org/downloads#packages) for the
 corresponding platform. Currently only implemented for the Debian and Ubuntu repository.
 

@@ -22,20 +22,25 @@ depends 'yum'
   supports os
 end
 
-attribute 'mongodb/dbpath',
+attribute 'mongodb/config/dbpath',
           :display_name => 'dbpath',
           :description => 'Path to store the mongodb data',
           :default => '/var/lib/mongodb'
 
-attribute 'mongodb/logpath',
+attribute 'mongodb/config/logpath',
           :display_name => 'logpath',
           :description => 'Path to store the logfiles of a mongodb instance',
-          :default => '/var/log/mongodb'
+          :default => '/var/log/mongodb/mongodb.log'
 
-attribute 'mongodb/port',
+attribute 'mongodb/config/port',
           :display_name => 'Port',
           :description => 'Port the mongodb instance is running on',
           :default => '27017'
+
+attribute 'mongodb/reload_action',
+          :display_name => 'Reload',
+          :description => 'Action to take when MongoDB config files are modified',
+          :default => 'restart'
 
 attribute 'mongodb/client_roles',
           :display_name => 'Client Roles',
@@ -59,20 +64,20 @@ attribute 'mongodb/sharded_collections',
           :type => 'array',
           :default => []
 
-attribute 'mongodb/replicaset_name',
-          :display_name => 'Replicaset_name',
+attribute 'mongodb/config/replSet',
+          :display_name => 'Replicaset Name',
           :description => 'Name of a mongodb replicaset',
           :default => nil
 
-attribute 'mongodb/enable_rest',
+attribute 'mongodb/config/rest',
           :display_name => 'Enable Rest',
           :description => 'Enable the ReST interface of the webserver'
 
-attribute 'mongodb/smallfiles',
+attribute 'mongodb/config/smallfiles',
           :display_name => 'Use small files',
           :description => 'Modify MongoDB to use a smaller default data file size'
 
-attribute 'mongodb/bind_ip',
+attribute 'mongodb/config/bind_ip',
           :display_name => 'Bind address',
           :description => 'MongoDB instance bind address',
           :default => nil
@@ -87,7 +92,7 @@ attribute 'mongodb/configfile',
           :description => 'Name of configuration file to use with when starting mongod/mongos vs command line options',
           :default => nil
 
-attribute 'mongodb/nojournal',
+attribute 'mongodb/config/nojournal',
           :display_name => 'Disable Journals',
           :description => 'Journals are enabled by default on 64bit after mongo 2.0, this can disable it',
           :default => 'false'

@@ -38,12 +38,12 @@ if configsrv.length != 1 && configsrv.length != 3
   fail 'Wrong number of configserver nodes'
 end
 
-mongodb_instance 'mongos' do
-  mongodb_type 'mongos'
-  port         node['mongodb']['port']
-  logpath      node['mongodb']['logpath']
-  dbpath       node['mongodb']['dbpath']
+mongodb_instance "mongos" do
+  mongodb_type "mongos"
+  port         node['mongodb']['config']['port']
+  logpath      node['mongodb']['config']['logpath']
+  dbpath       node['mongodb']['config']['dbpath']
   configserver configsrv
-  enable_rest  node['mongodb']['enable_rest']
-  smallfiles   node['mongodb']['smallfiles']
+  enable_rest  node['mongodb']['config']['rest']
+  smallfiles   node['mongodb']['config']['smallfiles']
 end
