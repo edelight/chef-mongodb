@@ -52,7 +52,7 @@ template init_file do
     :bind_ip =>        node['mongodb']['config']['bind_ip'],
     :port =>           node['mongodb']['config']['port']
   )
-  action :create_if_missing
+  action :create
 end
 
 packager_opts = ''
