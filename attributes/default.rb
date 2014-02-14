@@ -38,6 +38,8 @@ default[:mongodb][:raid_ebs_type] = "standard"
 default[:mongodb][:raid_ebs_piops] = 100
 default[:mongodb][:raid_mount] = "/data"
 default[:mongodb][:raid_snaps] = nil
+default[:mongodb][:raid_fs] = "ext4"
+default[:mongodb][:raid_fs_opts] = "rw,noatime,nodiratime,nobarrier"
 default[:mongodb][:setra] = 128
 
 default[:mongodb][:encfs] = nil

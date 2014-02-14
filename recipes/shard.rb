@@ -34,6 +34,8 @@ if node[:cloud] and
 	 disk_piops node[:mongodb][:raid_ebs_piops]
 	 mount_point node[:mongodb][:raid_mount]
 	 snapshots node[:mongodb][:raid_snaps]
+	 filesystem node[:mongodb][:raid_fs]
+	 filesystem_options node[:mongodb][:raid_fs_opts]
 	 action [ :auto_attach ]
       end
    else
@@ -44,8 +46,25 @@ if node[:cloud] and
 	 disk_type node[:mongodb][:raid_ebs_type]
 	 mount_point node[:mongodb][:raid_mount]
 	 snapshots node[:mongodb][:raid_snaps]
+	 filesystem node[:mongodb][:raid_fs]
+	 filesystem_options node[:mongodb][:raid_fs_opts]
 	 action [ :auto_attach ]
       end
+   end
+
+   dev_path = "/dev/#{node[:aws][:raid][node[:mongodb][:raid_mount]][:raid_dev]}"
+
+   # setup raid mount in fstab
+   if dev_path then
+      Chef::Log.info("Adding mount info to fstab for raid device #{dev_path}.")
+      mount node[:mongodb][:raid_mount] do
+	 device dev_path
+	 fstype node[:mongodb][:raid_fs]
+	 options node[:mongodb][:raid_fs_opts]
+	 action [:enable]
+      end
+   else
+      Chef::Log.warn("Could not determine raid device for configuring fstab.")
    end
 
    if node[:mongodb][:encfs] then
