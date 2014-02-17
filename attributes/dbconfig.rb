@@ -23,5 +23,7 @@ default['mongodb']['config']['rest'] = node['mongodb']['enable_rest'] || false
 default['mongodb']['config']['smallfiles'] = node['mongodb']['smallfiles'] || false
 default['mongodb']['config']['oplogSize'] = node['mongodb']['oplog_size'] || nil
 
-default['mongodb']['config']['replSet'] = node['mongodb']['replicaset_name'] || nil
+if node.mongodb.is_replicaset
+  default['mongodb']['config']['replSet'] = node['mongodb']['replicaset_name'] || nil
+end
 default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file']
