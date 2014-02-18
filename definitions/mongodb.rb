@@ -151,6 +151,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
 	 "dbpath" => dbpath,
 	 "mnt_point" => mnt_point,
 	 "setra" => setra,
+	 "type" => type,
 	 "raid" => node[:mongodb][:raid]
        )
      end

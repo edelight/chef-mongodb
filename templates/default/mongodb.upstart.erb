@@ -18,7 +18,9 @@ pre-start script
 
 end script
 
+<% if @type != "shard" %>
 start on runlevel [2345]
+<% end %>
 stop on runlevel [06]
 
 exec sudo -u mongodb <%= @daemon ? "#{@daemon}" : "/usr/bin/mongod" %> --config <%= @configfile ? "#{@configfile}" : "/etc/mongodb.conf" %>
