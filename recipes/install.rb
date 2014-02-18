@@ -1,5 +1,10 @@
 include_recipe 'mongodb::10gen_repo' if node['mongodb']['install_method'] == '10gen' || node.run_list.recipes.include?('mongodb::10gen_repo')
 
+if node.mongodb.is_replicaset || node.mongodb.is_shard
+    node.set[:mongodb][:cluster_name]=  node['mongodb']['cluster_name']
+    node.set[:mongodb][:shard_name]=  node['mongodb']['shard_name']
+end
+
 # prevent-install defaults, but don't overwrite
 file node['mongodb']['sysconfig_file'] do
   content 'ENABLE_MONGODB=no'
