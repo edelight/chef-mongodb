@@ -48,7 +48,9 @@ default[:mongodb][:sysconfig_file] = '/etc/default/mongodb'
 default[:mongodb][:sysconfig_file_template] = 'mongodb.sysconfig.erb'
 default[:mongodb][:dbconfig_file_template] = 'mongodb.conf.erb'
 default[:mongodb][:dbconfig_file] = '/etc/mongodb.conf'
+
 default[:mongodb][:package_name] = 'mongodb'
+default[:mongodb][:package_version] = nil
 
 default[:mongodb][:default_init_name] = 'mongodb'
 default[:mongodb][:instance_name] = 'mongodb'
@@ -85,8 +87,7 @@ when 'rhel', 'fedora'
     default[:mongodb][:install_method] = '10gen'
     default[:mongodb][:package_name] = 'mongo-10gen-server'
   end
-# when "debian"
-else
+when "debian"
   Chef::Log.warn("Unknown Platform Family defaulting to 'debian' for [#{node['platform_family']}]") unless node['platform_family'] == 'debian'
   if node['platform'] == 'ubuntu'
     default[:mongodb][:apt_repo] = 'ubuntu-upstart'
@@ -95,11 +96,18 @@ else
   else
     default[:mongodb][:apt_repo] = 'debian-sysvinit'
   end
+else
+    Chef::Log.error("Unsupported Platform Family: #{node['platform_family']}")
+    fail
 end
 
-default[:mongodb][:package_version] = nil
 default[:mongodb][:template_cookbook] = 'mongodb'
 
-# name is being clarified
-default[:mongodb][:key_file] = nil # keyFile's contents
-default[:mongodb][:key_file_content] = node[:mongodb][:key_file]
+default[:mongodb][:key_file_content] = nil
+
+# install the mongo and bson_ext ruby gems at compile time to make them globally available
+# TODO: remove bson_ext once mongo gem supports bson >= 2
+default['mongodb']['ruby_gems'] = {
+    :mongo => nil,
+    :bson_ext => nil
+}

@@ -19,7 +19,9 @@
 # limitations under the License.
 #
 
-node.set[:mongodb][:is_configserver] = true
+node.set['mongodb']['is_configserver'] = true
+node.set['mongodb']['cluster_name'] = node['mongodb']['cluster_name']
+node.set['mongodb']['shard_name'] = node['mongodb']['shard_name']
 
 include_recipe 'mongodb::install'
 

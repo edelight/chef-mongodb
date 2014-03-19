@@ -1,11 +1,18 @@
 ========================
 Chef-MongoDB Cookbook Changelog
-Last-Update: Fri Feb  7 11:35:48 PST 2014
+Last-Update: Mon Mar  3 19:29:30 PST 2014
 ========================
 
 Version 0.15.0 DEVELOPMENTAL RELEASE
 ---------------------------
-* Deprecates setting config values at node['mongodb'] level
+* DEPRECATION: backward compatability for dbconfig variables in node['mongodb']
+ - use node['mongodb']['config'][variable] = value
+ - replSet is not set automatically
+* DEPRECATION: explicitly drop support for 'unsupported' platforms
+ - must be freebsd, rhel, fedora, debian
+* use node.set to make sure is_* attributes are available for search
+* 'key_file' -> 'key_file_content'
+* allow pinning for gems, pip packages
 
 Version 0.14.10 DEVELOPMENTAL RELEASE
 ---------------------------

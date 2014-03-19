@@ -1,4 +1,5 @@
-include_recipe 'mongodb::10gen_repo' if node['mongodb']['install_method'] == '10gen' || node.run_list.recipes.include?('mongodb::10gen_repo')
+# install the 10gen repo if necessary
+include_recipe 'mongodb::10gen_repo' if node['mongodb']['install_method'] == '10gen'
 
 # prevent-install defaults, but don't overwrite
 file node['mongodb']['sysconfig_file'] do
@@ -7,14 +8,6 @@ file node['mongodb']['sysconfig_file'] do
   owner 'root'
   mode 0644
   action :create_if_missing
-end
-
-if node['mongodb']['replicaset_name'].nil? && node.mongodb.is_replicaset
-  if node.mongodb.is_shard
-    node.default['mongodb']['config']['replSet'] = "rs_#{node['mongodb']['shard_name']}"
-  else
-    node.default['mongodb']['config']['replSet'] = 'rs_default'
-  end
 end
 
 # just-in-case config file drop
@@ -55,7 +48,6 @@ template init_file do
   action :create_if_missing
 end
 
-packager_opts = ''
 case node['platform_family']
 when 'debian'
   # this options lets us bypass complaint of pre-existing init file
@@ -65,6 +57,8 @@ when 'rhel'
   # Add --nogpgcheck option when package is signed
   # see: https://jira.mongodb.org/browse/SERVER-8770
   packager_opts = '--nogpgcheck'
+else
+  packager_opts = ''
 end
 
 # install

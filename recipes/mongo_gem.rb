@@ -1,15 +1,15 @@
-# install the mongo and bson_ext ruby gems at compile time to make them globally available
-# TODO: remove bson_ext once mongo gem supports bson >= 2
-gems = %w{mongo bson_ext}
-
-gems.each do |g|
-  if Gem.const_defined?('Version') && Gem::Version.new(Chef::VERSION) < Gem::Version.new('10.12.0')
+chef_major_version = Chef::VERSION.split('.')[0].to_i
+chef_minor_version = Chef::VERSION.split('.')[1].to_i
+node['mongodb']['gems'].each do |gem, version|
+  if chef_major_version < 10 and chef_minor_version < 12
     gem_package g do
+      version version
       action :nothing
     end.run_action(:install)
     Gem.clear_paths
   else
     chef_gem g do
+      version version
       action :install
     end
   end

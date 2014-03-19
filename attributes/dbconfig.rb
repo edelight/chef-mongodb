@@ -5,9 +5,9 @@
 
 include_attribute 'mongodb::default'
 
-default['mongodb']['config']['port'] = node['mongodb']['port'] || 27017
-default['mongodb']['config']['bind_ip'] = node['mongodb']['bind_ip'] || '0.0.0.0'
-default['mongodb']['config']['logpath'] = File.join(node['mongodb']['logpath'] || '/var/log/mongodb', 'mongodb.log')
+default['mongodb']['config']['port'] = 27017
+default['mongodb']['config']['bind_ip'] = '0.0.0.0'
+default['mongodb']['config']['logpath'] = '/var/log/mongodb/mongodb.log'
 default['mongodb']['config']['logappend'] = true
 # The platform_family? syntax in attributes files was added in Chef 11
 # if node.platform_family?("rhel", "fedora") then
@@ -17,11 +17,11 @@ when 'rhel', 'fedora'
 else
   default['mongodb']['config']['fork'] = false
 end
-default['mongodb']['config']['dbpath'] = node['mongodb']['dbpath'] || '/var/lib/mongodb'
-default['mongodb']['config']['nojournal'] = node['mongodb']['nojournal'] || false
-default['mongodb']['config']['rest'] = node['mongodb']['enable_rest'] || false
-default['mongodb']['config']['smallfiles'] = node['mongodb']['smallfiles'] || false
-default['mongodb']['config']['oplogSize'] = node['mongodb']['oplog_size'] || nil
+default['mongodb']['config']['dbpath'] = '/var/lib/mongodb'
+default['mongodb']['config']['nojournal'] = false
+default['mongodb']['config']['rest'] = false
+default['mongodb']['config']['smallfiles'] = false
+default['mongodb']['config']['oplogSize'] = nil
 
-default['mongodb']['config']['replSet'] = node['mongodb']['replicaset_name'] || nil
-default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file']
+default['mongodb']['config']['replSet'] = nil
+default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file_content']

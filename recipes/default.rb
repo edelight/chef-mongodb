@@ -21,14 +21,21 @@
 
 include_recipe 'mongodb::install'
 
-# configure default instance
-replicaset_recipe = 'mongodb::replicaset'
-configured_as_replicaset = case Chef::VERSION.split('.').first.to_i
-                           when 0..10 then node.recipe?(replicaset_recipe)
-                           else node.run_context.loaded_recipe?(replicaset_recipe)
-                           end
+# allow mongodb_instance to run if recipe isn't included
+allow_mongodb_instance_run = true
+conflicting_recipes = %w{mongodb::replicaset mongodb::shard mongodb::configserver mongodb::mongos mongodb::mms_agent}
+chef_major_version = Chef::VERSION.split('.').first.to_i
+if chef_major_version < 11
+  conflicting_recipes.each { |recipe|
+    allow_mongodb_instance_run &&= false if node.recipe?(recipe)
+  }
+else
+  conflicting_recipes.each { |recipe|
+    allow_mongodb_instance_run &&= false if node.run_context.loaded_recipe?(recipe)
+  }
+end
 
-unless configured_as_replicaset
+unless allow_mongodb_instance_run
   mongodb_instance node['mongodb']['instance_name'] do
     mongodb_type 'mongod'
     bind_ip      node['mongodb']['config']['bind_ip']
