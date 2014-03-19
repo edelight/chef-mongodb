@@ -11,7 +11,7 @@
 #               Set it to YES to enable mongod.
 #
 # Additional configurable variables:
-# <%= @provides %>_config (path):   Set to /usr/local/etc/mongodb.conf
+# <%= @provides %>_config (path):   Set to /usr/local/etc/mongod.conf
 #               by default. Additional configuration. You
 #               can also use mongod_flags for additional
 #               command line arguments.
@@ -28,7 +28,7 @@ command=/usr/local/bin/mongod
 load_rc_config $name
 
 : ${<%= @provides %>_enable="NO"}
-: ${<%= @provides %>_config="/usr/local/etc/mongodb.conf"}
+: ${<%= @provides %>_config="/usr/local/etc/mongod.conf"}
 : ${<%= @provides %>_dbpath="/var/db/mongodb"}
 : ${<%= @provides %>_user="mongodb"}
 : ${<%= @provides %>_command_args=""}

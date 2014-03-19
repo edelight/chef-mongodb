@@ -26,12 +26,12 @@ end
 attribute 'mongodb/config/dbpath',
           :display_name => 'dbpath',
           :description => 'Path to store the mongodb data',
-          :default => '/var/lib/mongodb'
+          :default => '/var/lib/mongo'
 
 attribute 'mongodb/config/logpath',
           :display_name => 'logpath',
           :description => 'Path to store the logfiles of a mongodb instance',
-          :default => '/var/log/mongodb/mongodb.log'
+          :default => '/var/log/mongo/mongod.log'
 
 attribute 'mongodb/config/port',
           :display_name => 'Port',

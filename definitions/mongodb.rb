@@ -22,7 +22,7 @@
 define :mongodb_instance,
        :mongodb_type  => 'mongod',
        :action        => [:enable, :start],
-       :logpath       => '/var/log/mongodb/mongodb.log',
+       :logpath       => '/var/log/mongo/mongod.log',
        :dbpath        => '/data',
        :configservers => [],
        :replicaset    => nil,

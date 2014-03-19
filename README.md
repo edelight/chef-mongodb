@@ -38,12 +38,12 @@ For examples see the USAGE section below.
 
 # ATTRIBUTES:
 
-## Mongodb Configuration 
+## Mongodb Configuration
 
-Basically all settings defined in the Configuration File Options documentation page can be added to the `mongodb[:config][:<setting>]` attribute: http://docs.mongodb.org/manual/reference/configuration-options/ 
+Basically all settings defined in the Configuration File Options documentation page can be added to the `mongodb[:config][:<setting>]` attribute: http://docs.mongodb.org/manual/reference/configuration-options/
 
-* `mongodb[:config][:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongodb"
-* `mongodb[:config][:logpath]` - Path for the logfiles, default is "/var/log/mongodb/mongodb.log"
+* `mongodb[:config][:dbpath]` - Location for mongodb data directory, defaults to "/var/lib/mongo"
+* `mongodb[:config][:logpath]` - Path for the logfiles, default is "/var/log/mongo/mongod.log"
 * `mongodb[:config][:port]` - Port the mongod listens on, default is 27017
 * `mongodb[:config][:rest]` - Enable the ReST interface of the webserver
 * `mongodb[:config][:smallfiles]` - Modify MongoDB to use a smaller default data file size
@@ -212,7 +212,7 @@ This is esp. important when you want to replicate shards.
 
 ## Sharding + Replication
 
-The setup is not much different to the one described above. All you have to do is adding the 
+The setup is not much different to the one described above. All you have to do is adding the
 `mongodb::replicaset` recipe to all shard nodes, and make sure that all shard
 nodes which should be in the same replicaset have the same shard name.
 
