@@ -30,6 +30,8 @@ default[:mongodb][:replica_slave_delay] = 0
 default[:mongodb][:replica_priority] = 1
 default[:mongodb][:replica_tags] = {}
 default[:mongodb][:replica_votes] = 1
+default[:mongodb][:replicaset_name] = nil
+default[:mongodb][:replicaset_members] = nil
 
 default[:mongodb][:auto_configure][:replicaset] = true
 default[:mongodb][:auto_configure][:sharding] = true

@@ -199,13 +199,17 @@ define :mongodb_instance,
 
   # replicaset
   if new_resource.is_replicaset && new_resource.auto_configure_replicaset
-    rs_nodes = search(
-      :node,
-      "mongodb_cluster_name:#{new_resource.replicaset['mongodb']['cluster_name']} AND \
-       mongodb_is_replicaset:true AND \
-       mongodb_shard_name:#{new_resource.replicaset['mongodb']['shard_name']} AND \
-       chef_environment:#{new_resource.replicaset.chef_environment}"
-    )
+    if Chef::Config[:solo]
+      rs_nodes = [node]
+    else
+      rs_nodes = search(
+        :node,
+        "mongodb_cluster_name:#{new_resource.replicaset['mongodb']['cluster_name']} AND \
+         mongodb_is_replicaset:true AND \
+         mongodb_shard_name:#{new_resource.replicaset['mongodb']['shard_name']} AND \
+         chef_environment:#{new_resource.replicaset.chef_environment}"
+      )
+    end
 
     ruby_block 'config_replicaset' do
       block do
