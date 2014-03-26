@@ -14,6 +14,14 @@ pre-start script
     for n in $vol $disks ; do
       blockdev --setra <%= @setra %> $n
     done
+
+    for path in $disks ; do
+      dev=`/usr/bin/basename $path` 
+
+      echo 500 > /sys/block/$dev/queue/iosched/write_expire
+      echo 1 > /sys/block/$dev/queue/iosched/writes_starved
+      echo 0 > /sys/block/$dev/queue/iosched/front_merges
+   done
   <% end %>
 
 end script
