@@ -52,19 +52,15 @@ if node[:cloud] and
       end
    end
 
-   dev_path = "/dev/#{node[:aws][:raid][node[:mongodb][:raid_mount]][:raid_dev]}"
-
    # setup raid mount in fstab
-   if dev_path then
-      Chef::Log.info("Adding mount info to fstab for raid device #{dev_path}.")
-      mount node[:mongodb][:raid_mount] do
-	 device dev_path
-	 fstype node[:mongodb][:raid_fs]
-	 options node[:mongodb][:raid_fs_opts]
-	 action [:enable]
-      end
-   else
-      Chef::Log.warn("Could not determine raid device for configuring fstab.")
+   Chef::Log.info("Adding mount info to fstab for raid device.")
+   mount node[:mongodb][:raid_mount] do
+      device lazy { 
+	 "/dev/#{node[:aws][:raid][node[:mongodb][:raid_mount]][:raid_dev]}"
+      }
+      fstype node[:mongodb][:raid_fs]
+      options node[:mongodb][:raid_fs_opts]
+      action [:enable]
    end
 
    if node[:mongodb][:encfs] then
@@ -72,6 +68,7 @@ if node[:cloud] and
 
       tealium_encfs_mount node[:mongodb][:data_root] do
          encrypted_data node[:mongodb][:raid_mount]
+	 fuse_opts 'noatime'
       end
    end
 
