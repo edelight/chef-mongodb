@@ -2,7 +2,7 @@ maintainer        "Tealium"
 maintainer_email  "devops@tealium.com"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.14.3"
+version           "0.14.5"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -16,7 +16,7 @@ recipe "mongodb::backup", "Installs and configures mongodb cluster backup softwa
   depends cookbook
 end
 
-depends "tealium_encfs", "= 0.1.0"
+depends "tealium_encfs", "= 0.1.1"
 depends "tealium_bongo", "= 0.1.3"
 
 %w{ ubuntu }.each do |os|
