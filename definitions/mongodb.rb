@@ -165,7 +165,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
        variables(
 	 "daemon" => daemon,
 	 "configfile" => configfile,
-	 "mongos_dependent_app" => params[:mongos_dependent_app],
+	 "mongos_dependent_app" => params[:mongos_dependent_app]
        )
      end
    end
