@@ -107,11 +107,7 @@ class Chef::ResourceDefinitionList::MongoDB
       end
 
       rs_members = []
-        if node['fqdn'].nil?
-          rs_members << {"_id" => 0, "host" => node['ipaddress'] }
-        else
-          rs_members << {"_id" => 0, "host" => node['fqdn'] }
-        end
+      rs_members << {"_id" => 0, "host" => node['ipaddress'] }
 
       ######rs_members << {"_id" => 0, "host" => node[host] }
       ######rs_members << {"_id" => 0, "host" => node['fqdn'] }
@@ -163,55 +159,27 @@ class Chef::ResourceDefinitionList::MongoDB
 
       # Want the node originating the connection to be included in the replicaset
       fqdns = members.collect{ |m|
-        #if ['fqdn'].nil? then
           m['ipaddress']
-        #else 
-        #  m['fqdn']
-        #end
       }
-      #fqdns = members.collect{ |m| m['fqdn'] }
       
-      #if node['fqdn'].nil? then
-        members << node unless fqdns.include?(node['ipaddress'])
-      #else
-      #  members << node unless fqdns.include?(node['fqdn'])
-      #end
-
-      #members << node unless fqdns.include?(node['fqdn'])
+      members << node unless fqdns.include?(node['ipaddress'])
 
       #Reconfigure replicaset
       members.sort!{ |x,y| x.name <=> y.name }
       rs_members = []
       members.each_index do |n|
-        Chef::Log.info(n)
+          Chef::Log.info(n)
 
 
-      #  if node['fqdn'].nil? then
           if members[n]['ipaddress'] == node['ipaddress'] && members[n]['mongodb']['replicaset_member_id'] == nil
             rs_members << {"_id" => max_id, "host" => "#{node['ipaddress']}:#{node['mongodb']['port']}"}
           elsif members[n]['mongodb']['replicaset_member_id'] != nil
             rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n]['ipaddress']}:#{members[n]['mongodb']['port']}"}
           end  
-      #  else 
-      #    if members[n]['fqdn'] == node['fqdn'] && members[n]['mongodb']['replicaset_member_id'] == nil
-      #      rs_members << {"_id" => max_id, "host" => "#{node['fqdn']}:#{node['mongodb']['port']}"}
-      #    elsif members[n]['mongodb']['replicaset_member_id'] != nil
-      #      rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n]['fqdn']}:#{members[n]['mongodb']['port']}"}
-      #    end
-      #  end
 
-       #if members[n]['fqdn'] == node['fqdn'] && members[n]['mongodb']['replicaset_member_id'] == nil
-       #    rs_members << {"_id" => max_id, "host" => "#{node[host]}:#{node['mongodb']['port']}"}
-       #  elsif members[n]['mongodb']['replicaset_member_id'] != nil
-       #    rs_members << {"_id" => members[n]['mongodb']['replicaset_member_id'], "host" => "#{members[n][host]}:#{members[n]['mongodb']['port']}"}
-       #  end
       end
 
-      #if node['fqdn'].nil? then
         Chef::Log.info("Configuring replicaset with members #{members.collect{ |n| n['ipaddress'] }.join(', ')}")
-      #else
-      #  Chef::Log.info("Configuring replicaset with members #{members.collect{ |n| n['fqdn'] }.join(', ')}")
-      #end
 
       #Increment document version
       config['version'] += 1
