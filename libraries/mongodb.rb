@@ -92,9 +92,9 @@ class Chef::ResourceDefinitionList::MongoDB
       # We have defined members to include. Need to add to the array.
       node['mongodb']['replicaset_members'].each_with_index do |address, index|
         if index == 0
-          rs_member_ips << {"_id" => index + rs_members.count, "host" => "#{address}:#{node['mongodb']['port']}", "arbiterOnly" => true}
+          rs_member_ips << {"_id" => index + rs_members.count, "host" => "#{address}:#{node['mongodb']['config']['port']}", "arbiterOnly" => true}
         else
-          rs_member_ips << {"_id" => index + rs_members.count, "host" => "#{address}:#{node['mongodb']['port']}"}
+          rs_member_ips << {"_id" => index + rs_members.count, "host" => "#{address}:#{node['mongodb']['config']['port']}"}
         end
       end
     end
@@ -190,7 +190,7 @@ class Chef::ResourceDefinitionList::MongoDB
           members_add = rs_members - old_members
           members_add.each do |m|
             max_id += 1
-            config['members'] << { '_id' => max_id, 'host' => m }.merge(rs_options[m])
+            config['members'] << { '_id' => max_id, 'host' => m }.merge(rs_options[m] || {})
           end
 
           rs_connection = nil
