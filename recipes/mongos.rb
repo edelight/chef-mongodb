@@ -28,12 +28,35 @@ if ::File.executable?('/etc/init.d/mongodb') then
    end
 end
 
-configsvr = search(
-  :node,
-  "mongodb_cluster_name:#{node['mongodb']['cluster_name']} AND \
-   recipes:mongodb\\:\\:configserver AND \
-   chef_environment:#{node.chef_environment}"
-)
+cluster_name = node[:mongodb][:cluster_name]
+
+if !node[:mongodb][cluster_name].nil? and
+   !node[:mongodb][cluster_name][:config_servers].nil?
+
+   configsvr = []
+   node[:mongodb][cluster_name][:config_servers].each do |ip|
+
+      cs = search(
+	:node,
+	"mongodb_cluster_name:#{cluster_name} AND \
+	 recipes:mongodb\\:\\:configserver AND \
+	 chef_environment:#{node.chef_environment} AND \
+	 ipaddress:#{ip}"
+      )
+
+      configsvr.push(cs)
+   end
+
+else
+
+   configsvr = search(
+     :node,
+     "mongodb_cluster_name:#{cluster_name} AND \
+      recipes:mongodb\\:\\:configserver AND \
+      chef_environment:#{node.chef_environment}"
+   )
+
+end
 
 Chef::Log.info( "Searching for Mongo Config Servers -- search result is: #{configsvr}" )
 
