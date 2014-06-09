@@ -44,7 +44,7 @@ if !node[:mongodb][cluster_name].nil? and
 	 ipaddress:#{ip}"
       )
 
-      configsvr.push(cs)
+      configsvr.push(cs[0])
    end
 
 else
