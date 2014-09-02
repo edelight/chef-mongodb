@@ -13,7 +13,7 @@ default['mongod']['config']['bind_ip']        = '127.0.0.1'
 # settings are incompatible.
 # For more information see: edelight/chef-mongodb#310
 
-p node
+p node['mongodb']
 
 unless node['mongodb']['config']['syslog']
   default['mongod']['config']['logpath']      = '/var/log/mongodb/mongodb.log'
