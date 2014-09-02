@@ -44,8 +44,5 @@ if allow_mongodb_instance_run
     dbpath          node['mongodb']['config']['dbpath']
     enable_rest     node['mongodb']['config']['rest']
     smallfiles      node['mongodb']['config']['smallfiles']
-
-    mongod_bind_ip  node['mongod']['config']['bind_ip']
-    mongod_port     node['mongod']['config']['port']
   end
 end
