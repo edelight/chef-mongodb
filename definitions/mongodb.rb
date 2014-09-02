@@ -70,7 +70,7 @@ define :mongodb_instance,
   new_resource.dbconfig_file              = node['mongodb']['dbconfig_file']
   new_resource.dbconfig_file_template     = node['mongodb']['dbconfig_file_template']
   new_resource.daemon_config              = node['mongod']['config']
-  new_resource.daemongconfig_file         = node['mongodb']['daemonconfig_file']
+  new_resource.daemonconfig_file          = node['mongodb']['daemonconfig_file']
   new_resource.daemonconfig_file_template = node['mongodb']['daemonconfig_file_template']
   new_resource.init_dir                   = node['mongodb']['init_dir']
   new_resource.init_script_template       = node['mongodb']['init_script_template']
