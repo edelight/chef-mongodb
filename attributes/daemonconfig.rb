@@ -4,6 +4,9 @@
 
 include_attribute 'mongodb::default'
 
+default['mongod']['config']['port'] =           27017
+default['mongod']['config']['bind_ip'] =        '127.0.0.1'
+
 # Workaround for opscode/chef#1507, which prevents users from
 # unsetting our default with a nil override.
 # So we make sure to unset logpath when syslog is set since the two
@@ -14,8 +17,6 @@ unless node['mongodb']['config']['syslog']
 end
 
 default['mongod']['config']['logappend'] =      true
-default['mongod']['config']['port'] =           27017
-default['mongod']['config']['bind_ip'] =        '127.0.0.1'
 default['mongod']['config']['nojournal'] =      false
 default['mongod']['config']['cpu'] =            false
 default['mongod']['config']['noauth'] =         true
