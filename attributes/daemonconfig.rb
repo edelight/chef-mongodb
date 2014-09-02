@@ -9,7 +9,7 @@ include_attribute 'mongodb::default'
 # So we make sure to unset logpath when syslog is set since the two
 # settings are incompatible.
 # For more information see: edelight/chef-mongodb#310
-unless node['mongod']['config']['syslog']
+unless node['mongodb']['config']['syslog']
   default['mongod']['config']['logpath'] = '/var/log/mongodb/mongodb.log'
 end
 
