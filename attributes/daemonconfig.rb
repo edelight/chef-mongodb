@@ -12,9 +12,9 @@ default['mongod']['config']['bind_ip'] =        '127.0.0.1'
 # So we make sure to unset logpath when syslog is set since the two
 # settings are incompatible.
 # For more information see: edelight/chef-mongodb#310
-unless node['mongodb']['config']['syslog']
+#unless node['mongodb']['config']['syslog']
   default['mongod']['config']['logpath'] = '/var/log/mongodb/mongodb.log'
-end
+#end
 
 default['mongod']['config']['logappend'] =      true
 default['mongod']['config']['nojournal'] =      false
