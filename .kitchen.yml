@@ -87,6 +87,23 @@ suites:
       config:
         configdb: my_configserver
 
+- name: multi_instance
+  run_list:
+  - "recipe[mongodb::configserver]"
+  - "recipe[chef-solo-search]"
+  - "recipe[mongodb::mongos]"
+  attributes:
+    mongodb:
+      cluster_name: default
+      mongos:
+        config:
+          configdb: localhost:27018
+      configserver:
+        config:
+          port: 27018
+          logpath: /var/log/mongodb/mongodb_configserver.log
+          dbpath: /var/lib/mongodb_configserver
+
 - name: mms_monitoring_agent
   run_list:
   - "recipe[mongodb::mms_monitoring_agent]"
