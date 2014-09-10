@@ -40,6 +40,7 @@ end
 if needs_mongo_gem
   # install the mongo ruby gem at compile time to make it globally available
   gem_package 'mongo' do
+    version "1.10.2"
     action :nothing
   end.run_action(:install)
   Gem.clear_paths
