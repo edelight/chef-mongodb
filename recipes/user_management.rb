@@ -1,5 +1,5 @@
 chef_gem 'mongo' do
-  version "1.10.2"
+  version '1.10.2'
 end
 
 # Set default to true if this recipe is included
