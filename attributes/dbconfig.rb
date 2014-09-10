@@ -5,6 +5,7 @@
 
 include_attribute 'mongodb::default'
 
+# Main Config
 default['mongodb']['config']['port'] = 27017
 default['mongodb']['config']['bind_ip'] = '0.0.0.0'
 # Workaround for opscode/chef#1507, which prevents users from
@@ -32,3 +33,21 @@ default['mongodb']['config']['oplogSize'] = nil
 
 default['mongodb']['config']['replSet'] = nil
 default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file_content']
+
+types = %w(configserver mongos replicaset shard)
+keys = node['mongodb']['config'].keys + %w(configdb)
+
+types.each do |type|
+  # Set default instance name for server type
+  default['mongodb'][type]['instance_name'] = type
+
+  # Set default values for each type based of default config
+  keys.each do |k|
+    default['mongodb'][type]['config'][k] = node['mongodb']['config'][k] if node['mongodb']['config'].key? k
+  end
+  if node['mongodb']['config']['syslog']
+    default['mongodb'][type]['config']['syslog'] = true
+  else
+    default['mongodb'][type]['config']['logpath'] = node['mongodb']['config']['logpath']
+  end
+end

@@ -2,7 +2,7 @@
 include_recipe 'mongodb::10gen_repo' if %w(10gen mongodb-org).include?(node['mongodb']['install_method'])
 
 # prevent-install defaults, but don't overwrite
-file node['mongodb']['sysconfig_file'] do
+file "#{node['mongodb']['sysconfig_dir']}/mongodb" do
   content 'ENABLE_MONGODB=no'
   group node['mongodb']['root_group']
   owner 'root'
@@ -41,7 +41,7 @@ template init_file do
   mode mode
   variables(
     :provides =>       'mongod',
-    :sysconfig_file => node['mongodb']['sysconfig_file'],
+    :sysconfig_file => "#{node['mongodb']['sysconfig_dir']}/mongodb",
     :ulimit =>         node['mongodb']['ulimit'],
     :bind_ip =>        node['mongodb']['config']['bind_ip'],
     :port =>           node['mongodb']['config']['port']

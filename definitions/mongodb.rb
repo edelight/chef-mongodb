@@ -26,7 +26,13 @@ define :mongodb_instance,
        :dbpath        => '/data',
        :configservers => [],
        :replicaset    => nil,
+       :config        => nil,
+       :port          => 27017,
        :notifies      => [] do
+
+  # Set some dynamic defaults values if not set
+  params[:config] = params[:config].to_hash unless params[:config].nil?
+  params[:config] = node['mongodb']['config'].to_hash if params[:config].nil?
 
   # TODO: this is the only remain use of params[:mongodb_type], is it still needed?
   unless %w(mongod shard configserver mongos).include?(params[:mongodb_type])
@@ -35,26 +41,30 @@ define :mongodb_instance,
 
   # Make changes to node['mongodb']['config'] before copying to new_resource. Chef 11 appears to resolve the attributes
   # with precedence while Chef 10 copies to not (TBD: find documentation to support observed behavior).
-  if node['mongodb']['is_mongos']
+  if params[:mongodb_type] == 'mongos'
     provider = 'mongos'
     # mongos will fail to start if dbpath is set
-    node.default['mongodb']['config']['dbpath'] = nil
+    params[:config]['dbpath'] = nil
     unless node['mongodb']['config']['configdb']
       node.default['mongodb']['config']['configdb'] = params[:configservers].map do |n|
-        "#{(n['mongodb']['configserver_url'] || n['fqdn'])}:#{n['mongodb']['config']['port']}"
+        "#{(n['mongodb']['configserver_url'] || n['fqdn'])}:#{n['mongodb']['configserver']['config']['port']}"
       end.sort.join(',')
     end
   else
     provider = 'mongod'
   end
 
-  node.default['mongodb']['config']['configsvr'] = true if node['mongodb']['is_configserver']
+  # For configserver force node attribute for port for Chef Search directly above
+  if params[:mongodb_type] == 'configserver'
+    node.set['mongodb']['configserver']['config']['port'] = params[:port]
+  end
 
   require 'ostruct'
 
   new_resource = OpenStruct.new
 
   new_resource.name                       = params[:name]
+  new_resource.port                       = params[:port]
   new_resource.dbpath                     = params[:dbpath]
   new_resource.logpath                    = params[:logpath]
   new_resource.replicaset                 = params[:replicaset]
@@ -66,34 +76,42 @@ define :mongodb_instance,
   new_resource.auto_configure_sharding    = node['mongodb']['auto_configure']['sharding']
   new_resource.bind_ip                    = node['mongodb']['config']['bind_ip']
   new_resource.cluster_name               = node['mongodb']['cluster_name']
-  new_resource.config                     = node['mongodb']['config']
-  new_resource.dbconfig_file              = node['mongodb']['dbconfig_file']
+  new_resource.config                     = params[:config]
+  new_resource.dbconfig_file              = "/etc/mongodb-#{params[:name]}.conf"
   new_resource.dbconfig_file_template     = node['mongodb']['dbconfig_file_template']
   new_resource.init_dir                   = node['mongodb']['init_dir']
   new_resource.init_script_template       = node['mongodb']['init_script_template']
   new_resource.is_replicaset              = node['mongodb']['is_replicaset']
   new_resource.is_shard                   = node['mongodb']['is_shard']
-  new_resource.is_configserver            = node['mongodb']['is_configserver']
-  new_resource.is_mongos                  = node['mongodb']['is_mongos']
+  new_resource.is_configserver            = params[:mongodb_type] == 'configserver'
+  new_resource.is_mongos                  = params[:mongodb_type] == 'mongos'
   new_resource.mongodb_group              = node['mongodb']['group']
   new_resource.mongodb_user               = node['mongodb']['user']
   new_resource.replicaset_name            = node['mongodb']['config']['replSet']
-  new_resource.port                       = node['mongodb']['config']['port']
   new_resource.root_group                 = node['mongodb']['root_group']
   new_resource.shard_name                 = node['mongodb']['shard_name']
   new_resource.sharded_collections        = node['mongodb']['sharded_collections']
-  new_resource.sysconfig_file             = node['mongodb']['sysconfig_file']
+  new_resource.sysconfig_file             = "#{node['mongodb']['sysconfig_dir']}/#{params[:name]}"
   new_resource.sysconfig_file_template    = node['mongodb']['sysconfig_file_template']
-  new_resource.sysconfig_vars             = node['mongodb']['sysconfig']
+  new_resource.sysconfig_vars             = {
+    'DAEMON' => '/usr/bin/$NAME',
+    'DAEMON_USER' => node['mongodb']['user'],
+    'DAEMON_OPTS' => "--config #{new_resource.dbconfig_file}",
+    'CONFIGFILE' => new_resource.dbconfig_file,
+    'ENABLE_MONGODB' => 'yes',
+    'DAEMONUSER' => node['mongodb']['sysconfig']['DAEMON_USER'],
+    'ENABLE_MONGOD' => node['mongodb']['sysconfig']['ENABLE_MONGODB'],
+    'ENABLE_MONGO' => node['mongodb']['sysconfig']['ENABLE_MONGODB']
+  }
   new_resource.template_cookbook          = node['mongodb']['template_cookbook']
   new_resource.ulimit                     = node['mongodb']['ulimit']
   new_resource.reload_action              = node['mongodb']['reload_action']
 
   if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
-    new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
+    new_resource.init_file = File.join(node['mongodb']['init_dir'], "mongodb-#{new_resource.name}.conf")
     mode = '0644'
   else
-    new_resource.init_file = File.join(node['mongodb']['init_dir'], new_resource.name)
+    new_resource.init_file = File.join(node['mongodb']['init_dir'], "mongodb-#{new_resource.name}")
     mode = '0755'
   end
 
@@ -132,7 +150,7 @@ define :mongodb_instance,
     variables(
       :sysconfig => new_resource.sysconfig_vars
     )
-    notifies new_resource.reload_action, "service[#{new_resource.name}]"
+    notifies new_resource.reload_action, "service[mongodb-#{new_resource.name}]"
   end
 
   # config file
@@ -146,7 +164,7 @@ define :mongodb_instance,
     )
     helpers MongoDBConfigHelpers
     mode '0644'
-    notifies new_resource.reload_action, "service[#{new_resource.name}]"
+    notifies new_resource.reload_action, "service[mongodb-#{new_resource.name}]"
   end
 
   # log dir [make sure it exists]
@@ -184,21 +202,27 @@ define :mongodb_instance,
       :bind_ip =>        new_resource.bind_ip,
       :port =>           new_resource.port
     )
-    notifies new_resource.reload_action, "service[#{new_resource.name}]"
+    notifies new_resource.reload_action, "service[mongodb-#{new_resource.name}]"
   end
 
   # service
-  service new_resource.name do
+  service "mongodb-#{new_resource.name}" do
     provider Chef::Provider::Service::Upstart if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
     supports :status => true, :restart => true
+    unless %w(rhel fedora).include? node['platform_family']
+      status_command "sleep 1 && ps -ef | grep 'config /etc/mongodb-#{new_resource.name}.conf' | grep -v grep"
+    end
+    supports :restart => true
     action new_resource.service_action
     new_resource.service_notifies.each do |service_notify|
       notifies :run, service_notify
     end
     notifies :create, 'ruby_block[config_replicaset]' if new_resource.is_replicaset && new_resource.auto_configure_replicaset
     notifies :create, 'ruby_block[config_sharding]', :immediately if new_resource.is_mongos && new_resource.auto_configure_sharding
-      # we don't care about a running mongodb service in these cases, all we need is stopping it
+    # we don't care about a running mongodb service in these cases, all we need is stopping it
     ignore_failure true if new_resource.name == 'mongodb'
+    retries 2
+    retry_delay 2
   end
 
   # replicaset

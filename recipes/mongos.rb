@@ -19,10 +19,6 @@
 # limitations under the License.
 #
 
-node.set['mongodb']['is_mongos'] = true
-node.set['mongodb']['shard_name'] = node['mongodb']['shard_name']
-node.override['mongodb']['instance_name'] = 'mongos'
-
 include_recipe 'mongodb::install'
 include_recipe 'mongodb::mongo_gem'
 
@@ -42,12 +38,13 @@ if configsrvs.length != 1 && configsrvs.length != 3
   fail 'Wrong number of configserver nodes' unless Chef::Config[:solo]
 end
 
-mongodb_instance node['mongodb']['instance_name'] do
+mongodb_instance node['mongodb']['mongos']['instance_name'] do
   mongodb_type 'mongos'
-  port         node['mongodb']['config']['port']
-  logpath      node['mongodb']['config']['logpath']
-  dbpath       node['mongodb']['config']['dbpath']
+  port         node['mongodb']['mongos']['config']['port']
+  logpath      node['mongodb']['mongos']['config']['logpath']
+  dbpath       node['mongodb']['mongos']['config']['dbpath']
   configservers configsrvs
-  enable_rest  node['mongodb']['config']['rest']
-  smallfiles   node['mongodb']['config']['smallfiles']
+  enable_rest  node['mongodb']['mongos']['config']['rest']
+  smallfiles   node['mongodb']['mongos']['config']['smallfiles']
+  config       node['mongodb']['mongos']['config']
 end
