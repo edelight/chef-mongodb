@@ -1,4 +1,6 @@
-chef_gem 'mongo'
+chef_gem 'mongo' do
+  version "1.10.2"
+end
 
 # Set default to true if this recipe is included
 node.default['mongodb']['config']['auth'] = true
