@@ -56,10 +56,17 @@ if !node.recipes.include?("mongodb::configserver") and !node.recipes.include?("m
   end
 end
 
-bash "Set tcp_keepalive_time" do
+cookbook_file '/etc/sysctl.d/60-mongo.conf' do
+   source 'mongo_sysctl.conf'
+   owner 'root'
+   mode '0644'
+   action :create
+end
+
+bash "Update system variables" do
   code <<-BASH_SCRIPT
   user "root"
-  echo #{node[:mongodb][:keep_alive_time]} >> /proc/sys/net/ipv4/tcp_keepalive_time
+  service procps start
   BASH_SCRIPT
 end
 

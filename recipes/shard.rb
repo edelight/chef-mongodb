@@ -74,6 +74,13 @@ if node[:cloud] and
 
 end
 
+cookbook_file '/usr/local/bin/mongo_compact.rb' do
+   source 'mongo_compact.rb'
+   owner 'root'
+   mode '0755'
+   action :create
+end
+
 include_recipe "mongodb::default"
 
 # disable and stop the default mongodb instance

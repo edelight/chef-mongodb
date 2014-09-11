@@ -18,9 +18,9 @@ pre-start script
     for path in $disks ; do
       dev=`/usr/bin/basename $path` 
 
-      echo 500 > /sys/block/$dev/queue/iosched/write_expire
-      echo 1 > /sys/block/$dev/queue/iosched/writes_starved
-      echo 0 > /sys/block/$dev/queue/iosched/front_merges
+      echo 100 > /sys/block/$dev/queue/iosched/read_expire
+      echo 2 > /sys/block/$dev/queue/iosched/writes_starved
+      echo 1 > /sys/block/$dev/queue/iosched/front_merges
    done
   <% end %>
 
