@@ -20,7 +20,6 @@
 #
 
 define :mongodb_instance,
-       :mongodb_type  => 'mongod',
        :action        => [:enable, :start],
        :logpath       => '/var/log/mongodb/mongodb.log',
        :dbpath        => '/data',
@@ -28,40 +27,48 @@ define :mongodb_instance,
        :replicaset    => nil,
        :notifies      => [] do
 
-  # TODO: this is the only remain use of params[:mongodb_type], is it still needed?
-  unless %w(mongod shard configserver mongos).include?(params[:mongodb_type])
-    fail ArgumentError, ":mongodb_type must be 'mongod', 'shard', 'configserver' or 'mongos'; was #{params[:mongodb_type].inspect}"
-  end
-
+  ### Node Attribute Modification ###
   # Make changes to node['mongodb']['config'] before copying to new_resource. Chef 11 appears to resolve the attributes
   # with precedence while Chef 10 copies to not (TBD: find documentation to support observed behavior).
+  # XXX: Resource/Provider will not modify node attributes
+
+  # mongos will fail to start if dbpath is set
   if node['mongodb']['is_mongos']
-    provider = 'mongos'
-    # mongos will fail to start if dbpath is set
     node.default['mongodb']['config']['dbpath'] = nil
-    unless node['mongodb']['config']['configdb']
-      node.default['mongodb']['config']['configdb'] = params[:configservers].map do |n|
-        "#{(n['mongodb']['configserver_url'] || n['fqdn'])}:#{n['mongodb']['config']['port']}"
-      end.sort.join(',')
-    end
-  else
-    provider = 'mongod'
   end
 
+  # persist config.configdb from configservers param
+  if node['mongodb']['is_mongos']
+    unless node['mongodb']['config']['configdb']
+      configserver_nodes = params[:configservers]
+      configservers = configserver_nodes.map do |n|
+        hostname = n['mongodb']['configserver_url'] || n['fqdn']
+        port = n['mongodb']['port']
+        "#{hostname}:#{port}"
+      end
+      node.default['mongodb']['config']['configdb'] = configservers.sort.join(',')
+    end
+  end
+
+  # persist config.configsvr from is_configserver
   node.default['mongodb']['config']['configsvr'] = true if node['mongodb']['is_configserver']
 
+  ### BEGIN Pseudo Resource ###
   require 'ostruct'
-
   new_resource = OpenStruct.new
 
+  # Essential Parameters
+  # TODO: Resource/Provider will implement these as resource attributes which lazy load from node attributes
   new_resource.name                       = params[:name]
   new_resource.dbpath                     = params[:dbpath]
   new_resource.logpath                    = params[:logpath]
+  # this is the local node in all current usage
   new_resource.replicaset                 = params[:replicaset]
   new_resource.service_action             = params[:action]
   new_resource.service_notifies           = params[:notifies]
 
-  # TODO(jh): parameterize so we can make a resource provider
+  # Parameters from node attributes
+  # TODO: Resource/Provider will implement these as resource attributes which lazy load from node attributes
   new_resource.auto_configure_replicaset  = node['mongodb']['auto_configure']['replicaset']
   new_resource.auto_configure_sharding    = node['mongodb']['auto_configure']['sharding']
   new_resource.bind_ip                    = node['mongodb']['config']['bind_ip']
@@ -88,40 +95,69 @@ define :mongodb_instance,
   new_resource.template_cookbook          = node['mongodb']['template_cookbook']
   new_resource.ulimit                     = node['mongodb']['ulimit']
   new_resource.reload_action              = node['mongodb']['reload_action']
+  new_resource.apt_repo                   = node['mongodb']['apt_repo']
 
-  if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
-    new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
-    mode = '0644'
-  else
-    new_resource.init_file = File.join(node['mongodb']['init_dir'], new_resource.name)
-    mode = '0755'
-  end
-
-  # TODO(jh): reimplement using polymorphism
-  if new_resource.is_replicaset
-    if new_resource.replicaset_name
-      # trust a predefined replicaset name
-      replicaset_name = new_resource.replicaset_name
-    elsif new_resource.is_shard && new_resource.shard_name
-      # for replicated shards we autogenerate
-      # the replicaset name for each shard
-      replicaset_name = "rs_#{new_resource.shard_name}"
-    else
-      # Well shoot, we don't have a predefined name and we aren't
-      # really sharded. If we want backwards compatibility, this should be:
-      #   replicaset_name = "rs_#{new_resource.shard_name}"
-      # which with default values defaults to:
-      #   replicaset_name = 'rs_default'
-      # But using a non-default shard name when we're creating a default
-      # replicaset name seems surprising to me and needlessly arbitrary.
-      # So let's use the *default* default in this case:
-      replicaset_name = 'rs_default'
+  # internal state helpers
+  # TODO: Resource/Provider will implement these as helper methods
+  new_resource.extend(Module.new do
+    def provides
+      if is_mongos
+        'mongos'
+      else
+        'mongod'
+      end
     end
-  else
-    # not a replicaset, so no name
-    replicaset_name = nil
-  end
 
+    def using_upstart?
+      apt_repo == 'ubuntu-upstart'
+    end
+
+    def init_file
+      if using_upstart?
+        File.join(init_dir, "#{name}.conf")
+      else
+        File.join(init_dir, name)
+      end
+    end
+
+    def mode
+      if using_upstart?
+        '0644'
+      else
+        '0755'
+      end
+    end
+
+    def replicaset_name
+      if is_replicaset
+        if replicaset['mongodb']['config']['replSet']
+          # trust a predefined replicaset name
+          replicaset['mongodb']['config']['replSet']
+        elsif is_shard && shard_name
+          # for replicated shards we autogenerate
+          # the replicaset name for each shard
+          "rs_#{shard_name}"
+        else
+          # Well shoot, we don't have a predefined name and we aren't
+          # really sharded. If we want backwards compatibility, this should be:
+          #   replicaset_name = "rs_#{new_resource.shard_name}"
+          # which with default values defaults to:
+          #   replicaset_name = 'rs_default'
+          # But using a non-default shard name when we're creating a default
+          # replicaset name seems surprising to me and needlessly arbitrary.
+          # So let's use the *default* default in this case:
+          'rs_default'
+        end
+      else
+        # not a replicaset, so no name
+        nil
+      end
+    end
+  end
+  )
+  ### END Pseudo Resource ###
+
+  ### BEGIN Pseudo Provider ###
   # default file
   template new_resource.sysconfig_file do
     cookbook new_resource.template_cookbook
@@ -178,7 +214,7 @@ define :mongodb_instance,
     owner 'root'
     mode mode
     variables(
-      :provides =>       provider,
+      :provides =>       new_resource.provides,
       :sysconfig_file => new_resource.sysconfig_file,
       :ulimit =>         new_resource.ulimit,
       :bind_ip =>        new_resource.bind_ip,
@@ -197,7 +233,7 @@ define :mongodb_instance,
     end
     notifies :create, 'ruby_block[config_replicaset]' if new_resource.is_replicaset && new_resource.auto_configure_replicaset
     notifies :create, 'ruby_block[config_sharding]', :immediately if new_resource.is_mongos && new_resource.auto_configure_sharding
-      # we don't care about a running mongodb service in these cases, all we need is stopping it
+    # we don't care about a running mongodb service in these cases, all we need is stopping it
     ignore_failure true if new_resource.name == 'mongodb'
   end
 
@@ -213,7 +249,7 @@ define :mongodb_instance,
 
     ruby_block 'config_replicaset' do
       block do
-        MongoDB.configure_replicaset(new_resource.replicaset, replicaset_name, rs_nodes) unless new_resource.replicaset.nil?
+        MongoDB.configure_replicaset(new_resource.replicaset, new_resource.replicaset_name, rs_nodes) unless new_resource.replicaset.nil?
       end
       action :nothing
     end
@@ -244,4 +280,5 @@ define :mongodb_instance,
       action :nothing
     end
   end
+  ### END Pseudo Provider ###
 end
