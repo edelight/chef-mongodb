@@ -46,7 +46,7 @@ if needs_mongo_gem
   Gem.clear_paths
 end
 
-if !node.recipes.include?("mongodb::configserver") and !node.recipes.include?("mongodb::shard") and !node.recipes.include?("mongodb::replicaset") and !node.recipes.include?("mongodb::mongos")
+if !node.recipes.include?("mongodb::configserver") and !node.recipes.include?("mongodb::shard") and !node.recipes.include?("mongodb::replicaset") and !node.recipes.include?("mongodb::mongos") and !node.recipes.include?("mongodb::mongos_app_server")
   # configure default instance
   mongodb_instance "mongodb" do
     mongodb_type "mongod"
