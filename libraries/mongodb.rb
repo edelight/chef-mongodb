@@ -236,13 +236,25 @@ class Chef::ResourceDefinitionList::MongoDB
     Chef::Log.info(shard_members.inspect)
 
     begin
-      connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5)
+      connection = nil
+      rescue_connection_failure do
+        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5)
+      end
     rescue => e
       Chef::Log.warn("Could not connect to database: 'localhost:#{node['mongodb']['config']['port']}', reason #{e}")
       return
     end
 
     admin = connection['admin']
+
+    # If we require authentication on mongos / mongod, need to authenticate to run these commands
+    if node.recipe?('mongodb::user_management')
+      begin
+        admin.authenticate(node['mongodb']['authentication']['username'], node['mongodb']['authentication']['password'])
+      rescue Mongo::AuthenticationError => e
+        Chef::Log.warn("Unable to authenticate with database to add shards to mongos node: #{e}")
+      end
+    end
 
     shard_members.each do |shard|
       cmd = BSON::OrderedHash.new
@@ -267,13 +279,25 @@ class Chef::ResourceDefinitionList::MongoDB
     require 'mongo'
 
     begin
-      connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5)
+      connection = nil
+      rescue_connection_failure do
+        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5)
+      end
     rescue => e
       Chef::Log.warn("Could not connect to database: 'localhost:#{node['mongodb']['config']['port']}', reason #{e}")
       return
     end
 
     admin = connection['admin']
+
+    # If we require authentication on mongos / mongod, need to authenticate to run these commands
+    if node.recipe?('mongodb::user_management')
+      begin
+        admin.authenticate(node['mongodb']['authentication']['username'], node['mongodb']['authentication']['password'])
+      rescue Mongo::AuthenticationError => e
+        Chef::Log.warn("Unable to authenticate with database to configure databased on mongos node: #{e}")
+      end
+    end
 
     databases = sharded_collections.keys.map { |x| x.split('.').first }.uniq
     Chef::Log.info("enable sharding for these databases: '#{databases.inspect}'")

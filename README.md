@@ -245,12 +245,23 @@ the `node['mongodb']['config']['auth']` attribute to true in the chef json.
 
 If the auth configuration is true, it will try to create the `node['mongodb']['admin']` user, or
 update them if they already exist. Before using on a new database, ensure you're overwriting
-the `node['mongodb']['admin']['username']` and `node['mongodb']['admin']['password']` to
+the `node['mongodb']['authentication']['username']` and `node['mongodb']['authentication']['password']` to
 something besides their default values.
+
+To update the admin username or password after already having deployed the recipe with authentication
+as required, simply change `node['mongodb']['admin']['password']` to the new password while keeping the
+value of `node['mongodb']['authentication']['password']` the old value. After the recipe runs successfully,
+be sure to change the latter variable to the new password so that subsequent attempts to authenticate will
+work.
 
 There's also a user resource which has the actions `:add`, `:modify` and `:delete`. If modify is
 used on a user that doesn't exist, it will be added. If add is used on a user that exists, it
 will be modified.
+
+If using this recipe with replication and sharding, ensure that the `node['mongodb']['key_file_content']`
+is set. All nodes must have the same key file in order for the replica set to initialize successfully
+when authentication is required. For mongos instances, set `node['mongodb']['mongos_create_admin']` to
+`true` to force the creation of the admin user on mongos instances.
 
 # LICENSE and AUTHOR:
 
