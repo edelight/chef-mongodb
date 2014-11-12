@@ -5,7 +5,7 @@ LineLength:
   Max: 200 # TODO: reduce to 80
 
 MethodLength:
-  Max: 155 # TODO: reduce to 10
+  Max: 140 # TODO: reduce to 10
 
 ClassLength:
   Max: 264 # TODO: reduce to 100
