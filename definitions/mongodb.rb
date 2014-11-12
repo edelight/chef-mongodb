@@ -254,5 +254,10 @@ define :mongodb_instance,
       end
       action :nothing
     end
+
+    ruby_block 'run_config_sharding' do
+      block {}
+      notifies :create, 'ruby_block[config_sharding]'
+    end
   end
 end

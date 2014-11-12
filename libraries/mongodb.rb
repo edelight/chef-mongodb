@@ -27,13 +27,8 @@ class Chef::ResourceDefinitionList::MongoDB
     require 'rubygems'
     require 'mongo'
 
-    if members.length == 0
-      if Chef::Config[:solo]
-        Chef::Log.warn('Cannot search for member nodes with chef-solo, defaulting to single node replica set')
-      else
-        Chef::Log.warn("Cannot configure replicaset '#{name}', no member nodes found")
-        return
-      end
+    if members.length == 0 && Chef::Config[:solo]
+      Chef::Log.warn('Cannot search for member nodes with chef-solo, defaulting to single node replica set')
     end
 
     begin
