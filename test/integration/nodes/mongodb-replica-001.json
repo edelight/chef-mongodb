@@ -1,0 +1,33 @@
+{
+  "id": "mongodb-replica-001",
+  "name": "mongodb-replica-001",
+  "chef_environment": "_default",
+  "json_class": "Chef::Node",
+  "automatic": {
+    "fqdn": "mongodb-replica-001.example.net",
+    "hostname": "mongodb-replica-001",
+    "os": "centos"
+  },
+  "normal": {
+    "mongodb":{
+      "cluster_name": "kitchen",
+      "is_replicaset": "true",
+      "shard_name": "default",
+      "config": {
+        "port": "1234"
+      },
+      "replica_arbiter_only": false,
+      "replica_build_indexes": true,
+      "replica_hidden": false,
+      "replica_slave_delay": 0,
+      "replica_priority": 1,
+      "replica_tags": {"foo":"bar"},
+      "replica_votes": 1
+    }
+  },
+  "chef_type": "node",
+  "default": {},
+  "override": {},
+  "run_list": []
+}
+

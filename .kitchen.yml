@@ -5,9 +5,10 @@ driver:
     memory: 512
 
 provisioner:
-  name: chef_solo
+  name: chef_zero
   # require_chef_omnibus: latest # will install on each run
-  require_chef_omnibus: 11.8.2
+  require_chef_omnibus: 11.12.8
+  nodes_path: test/integration/nodes
 
 platforms:
 
@@ -67,7 +68,6 @@ suites:
 
 - name: replicaset
   run_list:
-  - "recipe[chef-solo-search]"
   - "recipe[mongodb::replicaset]"
   attributes:
     mongodb:
@@ -84,7 +84,6 @@ suites:
 
 - name: mongos
   run_list:
-  - "recipe[chef-solo-search]"
   - "recipe[mongodb::mongos]"
   attributes:
     mongodb:
