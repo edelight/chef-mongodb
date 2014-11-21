@@ -51,6 +51,13 @@ Basically all settings defined in the Configuration File Options documentation p
 * `node['mongodb']['config']['bind_ip']` - Configure from which address to accept connections
 * `node['mongodb']['config'][<setting>]` - General MongoDB Configuration File option
 
+Additionally, settings specific to `mongod`, typically found in `mongod.conf`, can be added to the `node['mongod']['config'][<setting>]` attribute:
+
+* `node['mongod']['config']['bind_ip']` - Configure from which address to accept `mongod` connections, defaults to localhost
+* `node['mongod']['config']['port']` - Port the mongod listens on, defaults to 27017
+* `node['mongod']['config']['logpath']` - Path for `mongod` logfiles, defaults to `/var/log/mongodb/mongod.log`
+* `node['mongod']['config'][<setting>]` - General `mongod` configuration file option 
+
 ### Cookbook specific attributes
 
 * `node[:mongodb][:reload_action]` - Action to take when MongoDB conf files are

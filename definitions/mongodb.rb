@@ -69,6 +69,9 @@ define :mongodb_instance,
   new_resource.config                     = node['mongodb']['config']
   new_resource.dbconfig_file              = node['mongodb']['dbconfig_file']
   new_resource.dbconfig_file_template     = node['mongodb']['dbconfig_file_template']
+  new_resource.daemon_config              = node['mongod']['config']
+  new_resource.daemonconfig_file          = node['mongodb']['daemonconfig_file']
+  new_resource.daemonconfig_file_template = node['mongodb']['daemonconfig_file_template']
   new_resource.init_dir                   = node['mongodb']['init_dir']
   new_resource.init_script_template       = node['mongodb']['init_script_template']
   new_resource.is_replicaset              = node['mongodb']['is_replicaset']
@@ -149,6 +152,20 @@ define :mongodb_instance,
     notifies new_resource.reload_action, "service[#{new_resource.name}]"
   end
 
+  # daemon config file
+  template new_resource.daemonconfig_file do
+    cookbook new_resource.template_cookbook
+    source new_resource.daemonconfig_file_template
+    group new_resource.root_group
+    owner 'root'
+    variables(
+      :config => new_resource.daemon_config
+    )
+    helpers MongoDBConfigHelpers
+    mode '0644'
+    notifies new_resource.reload_action, "service[#{new_resource.name}]"
+  end
+  
   # log dir [make sure it exists]
   if new_resource.logpath
     directory File.dirname(new_resource.logpath) do
