@@ -87,7 +87,7 @@ class Chef::ResourceDefinitionList::MongoDB
     cmd = BSON::OrderedHash.new
     cmd['replSetInitiate'] = {
       '_id' => name,
-      'members' => rs_members
+      'members' => node['mongodb']['use_ip_address'] ? rs_member_ips : rs_members
     }
 
     begin
