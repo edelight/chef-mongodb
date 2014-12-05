@@ -217,7 +217,7 @@ class Chef::ResourceDefinitionList::MongoDB
         # do not include hidden members when calling addShard
         # see https://jira.mongodb.org/browse/SERVER-9882
         next if n['mongodb']['replica_hidden']
-        key = "rs_#{n['mongodb']['shard_name']}"
+        key = "#{n['mongodb']['replicaset_name']}"
       else
         key = '_single'
       end
