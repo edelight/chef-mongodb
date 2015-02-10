@@ -38,6 +38,13 @@ fi
 
 start()
 {
+  ulimit -f <%= @ulimit['fsize'] %>
+  ulimit -t <%= @ulimit['cpu'] %>
+  ulimit -v <%= @ulimit['as'] %>
+  ulimit -n <%= @ulimit['nofile'] %>
+  ulimit -m <%= @ulimit['rss'] %>
+  ulimit -u <%= @ulimit['nproc'] %>
+
   echo -n $"Starting <%= @provides %>: "
   daemon --user "$DAEMON_USER" $NUMACTL $DAEMON $DAEMON_OPTS
   RETVAL=$?
@@ -62,13 +69,6 @@ restart () {
   stop
   start
 }
-
-ulimit -f <%= @ulimit['fsize'] %>
-ulimit -t <%= @ulimit['cpu'] %>
-ulimit -v <%= @ulimit['as'] %>
-ulimit -n <%= @ulimit['nofile'] %>
-ulimit -m <%= @ulimit['rss'] %>
-ulimit -u <%= @ulimit['nproc'] %>
 
 RETVAL=0
 
