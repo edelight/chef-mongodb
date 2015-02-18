@@ -55,7 +55,7 @@ default[:mongodb][:package_version] = nil
 default[:mongodb][:default_init_name] = 'mongodb'
 default[:mongodb][:instance_name] = 'mongodb'
 
-# this option can be "distro" or "mongodb-org"
+# this option can be "distro", "mongodb-org" or "none"
 default[:mongodb][:install_method] = 'distro'
 
 default[:mongodb][:is_replicaset] = nil
