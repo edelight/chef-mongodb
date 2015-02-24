@@ -18,6 +18,7 @@
 #
 
 # cluster identifier
+default['build-essential']['compile_time'] = true
 default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
 default[:mongodb][:shard_name] = 'default'
