@@ -92,6 +92,13 @@ when 'debian'
     default[:mongodb][:apt_repo] = 'ubuntu-upstart'
     default[:mongodb][:init_dir] = '/etc/init/'
     default[:mongodb][:init_script_template] = 'debian-mongodb.upstart.erb'
+
+    unless node['version'] && node['version'] < '2.6'
+      default[:mongodb][:instance_name] = 'mongod'
+      default[:mongodb][:default_init_name] = 'mongod'
+      default[:mongodb][:dbconfig_file] = '/etc/mongod.conf'
+      default[:mongodb][:sysconfig_file] = '/etc/default/mongod'
+    end 
   else
     default[:mongodb][:apt_repo] = 'debian-sysvinit'
   end
