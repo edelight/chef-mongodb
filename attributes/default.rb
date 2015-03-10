@@ -52,6 +52,19 @@ default[:mongodb][:dbconfig_file] = '/etc/mongodb.conf'
 default[:mongodb][:package_name] = 'mongodb'
 default[:mongodb][:package_version] = nil
 
+case node['platform_family']
+when 'debian'
+  # this options lets us bypass complaint of pre-existing init file
+  # necessary until upstream fixes ENABLE_MONGOD/DB flag
+  default[:mongodb][:packager_options] = '-o Dpkg::Options::="--force-confold" --force-yes'
+when 'rhel'
+  # Add --nogpgcheck option when package is signed
+  # see: https://jira.mongodb.org/browse/SERVER-8770
+  default[:mongodb][:packager_options] = '--nogpgcheck'
+else
+  default[:mongodb][:packager_options] = ''
+end
+
 default[:mongodb][:default_init_name] = 'mongodb'
 default[:mongodb][:instance_name] = 'mongodb'
 
