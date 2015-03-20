@@ -4,3 +4,5 @@ rvm:
   - 2.0.0
   - 2.1.1
 bundler_args: --without integration
+cache: bundler
+sudo: false
