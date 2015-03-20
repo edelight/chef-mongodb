@@ -9,6 +9,18 @@ users << admin if node['mongodb']['config']['auth'] == true
 
 users.concat(node['mongodb']['users'])
 
+service 'mongodb' do
+  action :restart
+end
+
+# Retry 5 times to make sure mongodb is started
+execute 'wait for mongodb' do
+  command 'mongo'
+  action :run
+  retries 5
+  retry_delay 10
+end
+
 # Add each user specified in attributes
 users.each do |user|
   mongodb_user user['username'] do
