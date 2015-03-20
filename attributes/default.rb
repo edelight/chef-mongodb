@@ -17,6 +17,9 @@
 # limitations under the License.
 #
 
+# We need build-essential at compile time
+default['build-essential']['compile_time'] = true
+
 # cluster identifier
 default[:mongodb][:client_roles] = []
 default[:mongodb][:cluster_name] = nil
