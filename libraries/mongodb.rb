@@ -40,6 +40,14 @@ class Chef::ResourceDefinitionList::MongoDB
       connection = nil
       rescue_connection_failure do
         connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
+        if node['mongodb']['config']['auth'] == true
+          begin
+            connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+          rescue Mongo::AuthenticationError => e
+            Chef::Log.warn("Unable to authenticate #{node['mongodb']['admin']['username']} user for replicaset setup. Please configure user with admin role before start repolicaset. http://docs.mongodb.org/manual/tutorial/deploy-replica-set-with-auth/ for details.")
+            return
+          end
+        end
         connection.database_names # check connection
       end
     rescue => e
@@ -102,6 +110,9 @@ class Chef::ResourceDefinitionList::MongoDB
       server, port = Regexp.last_match.nil? || Regexp.last_match.length < 2 ? ['localhost', node['mongodb']['config']['port']] : Regexp.last_match[1].split(':')
       begin
         connection = Mongo::Connection.new(server, port, :op_timeout => 5, :slave_ok => true)
+        if node['mongodb']['config']['auth'] == true
+          connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+        end
       rescue
         abort("Could not connect to database: '#{server}:#{port}'")
       end
@@ -132,6 +143,9 @@ class Chef::ResourceDefinitionList::MongoDB
         rs_connection = nil
         rescue_connection_failure do
           rs_connection = Mongo::ReplSetConnection.new(old_members)
+          if node['mongodb']['config']['auth'] == true
+            rs_connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+          end
           rs_connection.database_names # check connection
         end
 
@@ -144,6 +158,9 @@ class Chef::ResourceDefinitionList::MongoDB
         rescue Mongo::ConnectionFailure
           # reconfiguring destroys existing connections, reconnect
           connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
+          if node['mongodb']['config']['auth'] == true
+            connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+          end
           config = connection['local']['system']['replset'].find_one('_id' => name)
           # Validate configuration change
           if config['members'] == rs_members
@@ -175,6 +192,9 @@ class Chef::ResourceDefinitionList::MongoDB
         rs_connection = nil
         rescue_connection_failure do
           rs_connection = Mongo::ReplSetConnection.new(old_members)
+          if node['mongodb']['config']['auth'] == true
+            rs_connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+          end
           rs_connection.database_names # check connection
         end
 
@@ -189,6 +209,9 @@ class Chef::ResourceDefinitionList::MongoDB
         rescue Mongo::ConnectionFailure
           # reconfiguring destroys existing connections, reconnect
           connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
+          if node['mongodb']['config']['auth'] == true
+            connection.add_auth('admin', node['mongodb']['admin']['username'], password=node['mongodb']['admin']['password'])
+          end
           config = connection['local']['system']['replset'].find_one('_id' => name)
           # Validate configuration change
           if config['members'] == rs_members
