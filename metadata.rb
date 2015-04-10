@@ -1,3 +1,4 @@
+name        "mongodb"
 maintainer        "Tealium"
 maintainer_email  "devops@tealium.com"
 license           "Apache 2.0"
