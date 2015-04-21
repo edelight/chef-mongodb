@@ -74,6 +74,7 @@ when 'rhel', 'fedora'
   # determine the package name
   # from http://rpm.pbone.net/index.php3?stat=3&limit=1&srodzaj=3&dl=40&search=mongodb
   # verified for RHEL5,6 Fedora 18,19
+  default[:mongodb][:repo] = 'http://downloads-distro.mongodb.org/repo/redhat/os'
   default[:mongodb][:package_name] = 'mongodb-server'
   default[:mongodb][:sysconfig_file] = '/etc/sysconfig/mongodb'
   default[:mongodb][:user] = 'mongod'
@@ -89,6 +90,7 @@ when 'rhel', 'fedora'
   end
 when 'debian'
   if node['platform'] == 'ubuntu'
+    default[:mongodb][:repo] = 'http://downloads-distro.mongodb.org/repo'
     default[:mongodb][:apt_repo] = 'ubuntu-upstart'
     default[:mongodb][:init_dir] = '/etc/init/'
     default[:mongodb][:init_script_template] = 'debian-mongodb.upstart.erb'
