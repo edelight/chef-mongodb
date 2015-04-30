@@ -24,6 +24,7 @@ include_recipe "aws_ebs_disk"
 package "mongodb" do
   package_name "mongodb-10gen"
   version "2.4.3"
+  timeout 1200
   action :install
 end
 
