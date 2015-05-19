@@ -26,6 +26,7 @@ class Chef::ResourceDefinitionList::MongoDB
     # lazy require, to move loading this modules to runtime of the cookbook
     require 'rubygems'
     require 'mongo'
+    require 'sys/proctable'
 
     if members.length == 0
       if Chef::Config[:solo]
@@ -337,15 +338,18 @@ class Chef::ResourceDefinitionList::MongoDB
   end
 
   # Ensure retry upon failure
-  def self.rescue_connection_failure(max_retries = 30)
+  def self.rescue_connection_failure(max_retries = 2000)
     retries = 0
     begin
       yield
     rescue Mongo::ConnectionFailure => ex
-      retries += 1
-      raise ex if retries > max_retries
-      sleep(0.5)
-      retry
+      unless Sys::ProcTable.ps.find { |p| p.comm =~ /mongod/ }.nil?
+        retries += 1
+        raise ex if retries > max_retries
+        Chef::Log.info("Could not connect to mongo though a mongod is running.  Will retry #{max_retries - retries} more times.")
+        sleep(1) # Yes, 33.3 minutes by default.
+        retry
+      end
     end
   end
 end
