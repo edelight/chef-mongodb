@@ -6,6 +6,12 @@ gcc = package 'gcc' do
 end
 gcc.run_action(:install)
 
+be = package "build-essential" do
+  action :nothing
+  only_if { platform_family?('debian') }
+end
+be.run_action(:install)
+
 if platform_family?('rhel')
   sasldev_pkg = 'cyrus-sasl-devel'
 else

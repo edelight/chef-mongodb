@@ -340,6 +340,7 @@ class Chef::ResourceDefinitionList::MongoDB
   # Ensure retry upon failure
   def self.rescue_connection_failure(max_retries = 2000)
     retries = 0
+    secondary_retries = 0
     begin
       yield
     rescue Mongo::ConnectionFailure => ex
@@ -347,9 +348,16 @@ class Chef::ResourceDefinitionList::MongoDB
         retries += 1
         raise ex if retries > max_retries
         Chef::Log.info("Could not connect to mongo though a mongod is running.  Will retry #{max_retries - retries} more times.")
-        sleep(1) # Yes, 33.3 minutes by default.
+        sleep(1)
         retry
       end
+    # WARN: Could not connect to database: 'localhost:27017', reason: Timed out waiting on socket read.
+    rescue Exception => ex
+      secondary_retries += 1
+      raise ex if secondary_retries == 5
+      Chef::Log.info("Well I never expected to be here: #{ex}")
+      sleep(3)
+      retry
     end
   end
 end
