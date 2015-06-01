@@ -22,10 +22,9 @@
 include_recipe "aws_ebs_disk"
 
 package "mongodb" do
+  action :install
   package_name "mongodb-10gen"
   version "2.4.3"
-  timeout 1200
-  action :install
 end
 
 needs_mongo_gem = (node.recipes.include?("mongodb::replicaset") or node.recipes.include?("mongodb::mongos"))
