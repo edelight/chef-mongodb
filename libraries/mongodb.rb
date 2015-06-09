@@ -40,7 +40,7 @@ class Chef::ResourceDefinitionList::MongoDB
     begin
       connection = nil
       rescue_connection_failure do
-        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 5, :slave_ok => true)
+        connection = Mongo::Connection.new('localhost', node['mongodb']['config']['port'], :op_timeout => 120, :slave_ok => true)
         connection.database_names # check connection
       end
     rescue => e
@@ -339,24 +339,23 @@ class Chef::ResourceDefinitionList::MongoDB
 
   # Ensure retry upon failure
   def self.rescue_connection_failure(max_retries = 2000)
-    retries = 0
-    secondary_retries = 0
+    connect_retries = 0
+    operation_retries = 0
     begin
       yield
     rescue Mongo::ConnectionFailure => ex
       unless Sys::ProcTable.ps.find { |p| p.comm =~ /mongod/ }.nil?
-        retries += 1
-        raise ex if retries > max_retries
-        Chef::Log.info("Could not connect to mongo though a mongod is running.  Will retry #{max_retries - retries} more times.")
+        connect_retries += 1
+        raise ex if connect_retries > max_retries
+        Chef::Log.info("Could not connect to mongo though a mongod is running.  Will retry #{max_retries - connect_retries} more times.")
         sleep(1)
         retry
       end
-    # WARN: Could not connect to database: 'localhost:27017', reason: Timed out waiting on socket read.
-    rescue Exception => ex
-      secondary_retries += 1
-      raise ex if secondary_retries == 5
-      Chef::Log.info("Well I never expected to be here: #{ex}")
-      sleep(3)
+    rescue Mongo::OperationTimeout => ex
+      operation_retries += 1
+      raise ex if operation_retries > 30
+      Chef::Log.info("Operation timed out.  Will retry #{30 - operation_retries} more times.")
+      sleep(1)
       retry
     end
   end
