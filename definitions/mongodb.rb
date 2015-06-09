@@ -206,8 +206,8 @@ define :mongodb_instance,
     new_resource.service_notifies.each do |service_notify|
       notifies :run, service_notify
     end
-    notifies :create, 'ruby_block[config_replicaset]', :immediately if new_resource.is_replicaset && new_resource.auto_configure_replicaset
-    notifies :create, 'ruby_block[config_sharding]', :immediately if new_resource.is_mongos && new_resource.auto_configure_sharding
+    notifies :create, 'ruby_block[config_replicaset]' if new_resource.is_replicaset && new_resource.auto_configure_replicaset
+    notifies :create, 'ruby_block[config_sharding]' if new_resource.is_mongos && new_resource.auto_configure_sharding
       # we don't care about a running mongodb service in these cases, all we need is stopping it
     ignore_failure true if new_resource.name == 'mongodb'
   end
