@@ -35,6 +35,15 @@ when 'debian'
     action :add
   end
 
+  apt_repository 'mongodb' do
+    uri "http://repo.mongodb.org/apt/ubuntu"
+    distribution 'trusty/mongodb-org/stable'
+    components ['multiverse']
+    keyserver 'hkp://keyserver.ubuntu.com:80'
+    key '7F0CEB10'
+    action :add
+  end
+
 when 'rhel', 'fedora'
   yum_repository 'mongodb' do
     description 'mongodb RPM Repository'
@@ -42,6 +51,14 @@ when 'rhel', 'fedora'
     action :create
     gpgcheck false
     enabled true
+  end
+  
+  yum_repository 'mongodb-org-3.0' do
+      description 'MongoDB Repository'
+      baseurl "https://repo.mongodb.org/yum/redhat/6/mongodb-org/3.0/#{node['kernel']['machine']  =~ /x86_64/ ? 'x86_64' : 'i686'}"
+      action :create
+      gpgcheck false
+      enabled true
   end
 
 else
