@@ -35,6 +35,15 @@ when 'debian'
     action :add
   end
 
+  apt_repository 'mongodb' do
+    uri "http://repo.mongodb.org/apt/ubuntu"
+    distribution 'trusty/mongodb-org/stable'
+    components ['multiverse']
+    keyserver 'hkp://keyserver.ubuntu.com:80'
+    key '7F0CEB10'
+    action :add
+  end
+
 when 'rhel', 'fedora'
   yum_repository 'mongodb' do
     description 'mongodb RPM Repository'
