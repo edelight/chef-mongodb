@@ -78,10 +78,10 @@ Basically all settings defined in the Configuration File Options documentation p
 ### shared MMS Agent attributes
 
 * `node['mongodb']['mms_agent']['api_key']` - MMS Agent API Key. No default, required.
-* `node['mongodb['mms_agent']['monitoring']['version']` - Version of the MongoDB MMS Monitoring Agent package to download and install. Default is '2.0.0.17-1', required.
-* `node['mongodb['mms_agent']['monitoring'][<setting>]` - General MongoDB MMS Monitoring Agent configuration file option.
-* `node['mongodb['mms_agent']['backup']['version']` - Version of the MongoDB MMS Backup Agent package to download and install. Default is '1.4.3.28-1', required.
-* `node['mongodb['mms_agent']['backup'][<setting>]` - General MongoDB MMS Monitoring Agent configuration file option.
+* `node['mongodb']['mms_agent']['monitoring']['version']` - Version of the MongoDB MMS Monitoring Agent package to download and install. Default is '2.0.0.17-1', required.
+* `node['mongodb']['mms_agent']['monitoring'][<setting>]` - General MongoDB MMS Monitoring Agent configuration file option.
+* `node['mongodb']['mms_agent']['backup']['version']` - Version of the MongoDB MMS Backup Agent package to download and install. Default is '1.4.3.28-1', required.
+* `node['mongodb']['mms_agent']['backup'][<setting>]` - General MongoDB MMS Monitoring Agent configuration file option.
 
 ### User management attributes
 
