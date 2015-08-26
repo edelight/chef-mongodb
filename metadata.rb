@@ -3,7 +3,7 @@ maintainer        "Tealium"
 maintainer_email  "devops@tealium.com"
 license           "Apache 2.0"
 description       "Installs and configures mongodb"
-version           "0.15.3"
+version           "0.15.4"
 
 recipe "mongodb", "Installs and configures a single node mongodb instance"
 recipe "mongodb::10gen_repo", "Adds the 10gen repo to get the latest packages"
@@ -20,6 +20,7 @@ end
 
 depends "tealium_encfs"
 depends "tealium_bongo", "= 0.1.3"
+depends "python"
 
 %w{ ubuntu }.each do |os|
   supports os

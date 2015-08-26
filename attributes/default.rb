@@ -48,6 +48,15 @@ default[:mongodb][:backup][:hour] = "5"
 default[:mongodb][:backup][:minute] = "15"
 default[:mongodb][:backup][:archive_days] = "30"
 
+default[:mongodb][:token]['us-west-1'] = 11000000
+default[:mongodb][:token]['us-east-1'] = 21000000
+default[:mongodb][:token]['eu-west-1'] = 31000000
+
+# All times UTC
+default[:mongodb][:purge_window]['us-west-1'] = '03:00-13:00'
+default[:mongodb][:purge_window]['us-east-1'] = '00:00-10:00'
+default[:mongodb][:purge_window]['eu-west-1'] = '19:00-05:00'
+
 case node['platform']
 when "freebsd"
   default[:mongodb][:defaults_dir] = "/etc/rc.conf.d"
