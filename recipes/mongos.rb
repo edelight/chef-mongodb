@@ -20,7 +20,7 @@
 #
 
 include_recipe "mongodb"
-include_recipe "purge"
+include_recipe "mongodb::purge"
 
 if ::File.executable?('/etc/init.d/mongodb') then
    service "mongodb" do
