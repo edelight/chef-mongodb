@@ -1,0 +1,282 @@
+#!/usr/bin/env python
+
+desc = """
+
+Oldboy - https://www.youtube.com/watch?v=eRBwvIX7Sao
+
+Fight to remove stale Audience Stream profiles and visits.
+
+"""
+
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
+from bson.objectid import ObjectId
+import logging
+from logging.handlers import SysLogHandler
+from time import sleep
+import arrow
+import re
+import random
+import sys
+import traceback
+import argparse
+import daemon
+
+
+class MyLogFilter(logging.Filter):
+   def __init__(self, *allowed):
+      self.allowed = [logging.Filter(name) for name in allowed]
+
+   def filter(self, record):
+      return any(f.filter(record) for f in self.allowed)
+
+
+class OldboyError(Exception):
+   pass
+
+
+class OldboyStats():
+
+   import arrow
+
+   def __init__(self):
+      self.startTime = arrow.utcnow()
+      self.counter = 0
+
+   def total(self):
+      return self.counter
+
+   def incr(self, value):
+      self.counter = self.counter + value
+
+   def durationInSecs(self):
+      return (arrow.utcnow() - self.startTime).seconds
+
+   def ratePerHour(self):
+      return ((float(self.counter) / self.durationInSecs()) * 3600)
+
+   def ratePerSec(self):
+      return (float(self.counter) / self.durationInSecs())
+
+
+class TimeRange():
+
+   def __init__(self, range=None):
+      self.startHour = None
+      self.startMin = None
+      self.stopHour = None
+      self.stopMin = None
+
+      if range:
+	 rangeRegex = re.compile('(\d\d):(\d\d)-(\d\d):(\d\d)')
+	 rangeMatch = rangeRegex.match(range)
+	 self.startHour = int(rangeMatch.group(1))
+	 self.startMin = int(rangeMatch.group(2))
+	 self.stopHour = int(rangeMatch.group(3))
+	 self.stopMin = int(rangeMatch.group(4))
+
+
+class Purge(dict):
+
+   def __init__(self, args):
+
+      for k in args:
+	 setattr(self, k, args[k])
+
+      self.dbConn = MongoClient(self.dbHost, self.dbPort)
+      self.db = self.dbConn[self.dbName]
+
+      self.profileStats = OldboyStats()
+      self.visitStats = OldboyStats()
+
+      if self.throttle < 10:
+	 self.throttle = 10
+
+   def time_to_run(self):
+
+      if not self.timeRange:
+	 return True
+
+      now = arrow.utcnow()
+      start = now.replace(hour=self.timeRange.startHour,minute=self.timeRange.startMin,second=0,microsecond=0)
+      stop = now.replace(hour=self.timeRange.stopHour,minute=self.timeRange.stopMin,second=0,microsecond=0)
+      if stop < start:
+	 stop = stop.replace(hours=24)
+
+      logging.debug("current time is %s" % now)
+      logging.debug("should run between %s and %s" % (start, stop))
+
+      if now >= start and now < stop:
+	 return True
+      
+      return False
+
+
+   def run(self):
+
+      while (True):
+
+	 if self.time_to_run():
+	    logging.info("purging")
+            self.purge() 
+	    logging.info("purged %d profiles (%.02f/s) and %d visits (%.02f/s)"
+		         % (self.profileStats.total(), self.profileStats.ratePerSec(),
+			    self.visitStats.total(), self.visitStats.ratePerSec()))
+
+	 sleep(self.throttle)
+
+
+   def purge(self):
+
+      random.seed()
+      start = random.randint(self.shardTokenPrefix, self.shardTokenPrefix + self.maxPart - self.partRange)
+      end = start + self.partRange
+
+      logging.debug("purging token range %d to %s" % (start, end))
+
+      now = arrow.utcnow().naive
+
+      try:
+
+	 for target in self.db.visitor_profiles.find( { "shard_token" : { "$gte" : start, "$lte" : end },
+						   "expire_at": { "$lt" : now } },
+						 { "_id" : 1, "shard_token" : 1 }
+						 ).limit(self.batchSize).batch_size(self.batchSize):
+	    v_result = self.db.visitor_visits.delete_many( { "shard_token" : target["shard_token"],
+	                                                "visitor_id" : target["_id"] })
+	    self.visitStats.incr(v_result.deleted_count)
+	    p_result = self.db.visitor_profiles.delete_many( { "shard_token" : target["shard_token"],
+	                                                       "_id" : target["_id"] })
+	    self.profileStats.incr(p_result.deleted_count)
+
+      except PyMongoError as e:
+	 logging.warning("%s" % e)
+	 pass
+
+
+def positive_integer(i):
+   try:
+      i = int(i)
+      if i < 1: raise ValueError
+   except ValueError:
+      raise argparse.ArgumentTypeError("argument must be a "
+                                       "positive integer")
+   return i
+
+
+def parse_args():
+
+   gargle = argparse.ArgumentParser(prog = "oldboy", description=desc,
+	       usage='%(prog)s [options] <value>',
+	       formatter_class = argparse.RawDescriptionHelpFormatter)
+
+   gargle.add_argument('--host', dest='dbHost', metavar="<mongodb_host>",
+		      help='MongoDB server hostname or IP (default: localhost)',
+		      default='localhost')
+
+   gargle.add_argument('--port', dest='dbPort', metavar="<mongodb_port>",
+		      type=positive_integer,
+		      help='MongoDB server port (default: 27017)',
+		      default=27017)
+
+   gargle.add_argument('--db', dest='dbName', metavar="<database name>",
+	 help='Database containing visitor_profiles and visitor_visits. (default: datacloud)',
+	 default='datacloud')
+
+   gargle.add_argument('--when', dest='when', metavar="<start_time-stop_time>",
+	 help='Time range for when purging is allowed.  Specified in 24hr clock format as hh:mm-hh:mm. (default: Always)')
+
+   gargle.add_argument('--throttle', dest='throttle', metavar="<seconds>",
+		      type=positive_integer,
+		      help='Seconds to pause between purge batches (minimum 10). (default: 60)',
+		      default=60)
+
+   gargle.add_argument('--batch', dest='batchSize', metavar="<int>",
+		      type=positive_integer,
+		      help='Size of purge batches. (default: 500)',
+		      default=500)
+
+   gargle.add_argument('--partition-range', dest='partRange', metavar="<int>",
+		      type=positive_integer,
+		      help='Size of randomized partition ranges for purge queries. (default: 10)',
+		      default=10)
+
+   gargle.add_argument('--max-partition', dest='maxPart', metavar="<int>",
+		      type=positive_integer,
+		      help='Maximum datacloud partition number. (default: 99)',
+		      default=99)
+
+   gargle.add_argument('--verbose', action='store_true',
+		      help='log to stderr in addition to syslog (default: False)')
+
+   gargle.add_argument('--debug', action='store_true',
+		      help='log debugging info to stderr (default: False)')
+
+   gargle.add_argument('shardTokenPrefix', metavar="<int>",
+		      type=positive_integer,
+		      help='Shard token region prefix for this purge job.')
+
+   return gargle.parse_args()
+
+
+def main():
+
+   args = parse_args()
+
+   if args.verbose:
+      logLevel = logging.DEBUG
+   else:
+      logLevel = logging.INFO
+
+   logging.root.name = 'oldboy'
+   logging.root.setLevel(logLevel)
+
+   formatter = logging.Formatter('%(name)s: %(levelname)s: %(message)s')
+
+   if args.debug:
+      stderr = logging.StreamHandler()
+      stderr.setFormatter(formatter)
+      stderr.setLevel(logging.DEBUG)
+      logging.root.addHandler(stderr)
+      keepOpen = stderr.stream.fileno()
+   else:
+      syslog = SysLogHandler(address='/dev/log')
+      syslog.setFormatter(formatter)
+      syslog.setLevel(logLevel)
+      syslog.addFilter(MyLogFilter('oldboy'))
+      logging.root.addHandler(syslog)
+      keepOpen = syslog.socket.fileno()
+
+   urglefloggah = daemon.DaemonContext()
+   urglefloggah.detach_process = not args.debug
+   urglefloggah.files_preserve = [keepOpen]
+
+   if args.debug:
+      urglefloggah.stderr = stderr.stream
+      
+   try:
+      with urglefloggah:
+
+	 if args.when:
+	    timeRange = TimeRange(args.when)
+	    logging.debug("start hour = %d, start min = %d, stop hour = %d, stop min = %d" % (timeRange.startHour,
+	                                                                                  timeRange.startMin,
+	                                                                                  timeRange.stopHour,
+	                                                                                  timeRange.stopMin))
+	 else:
+	    timeRange = None
+	 args.timeRange = timeRange
+
+	 purge = Purge(vars(args))
+	 purge.run()
+
+	 sys.exit(0)
+
+   except Exception as e:
+      logging.critical("Terminating with uncaught exception: %s" % e)
+      traceback.print_exc(file=sys.stderr)
+      raise SystemExit(1)
+
+
+if __name__ == '__main__': main()
+
