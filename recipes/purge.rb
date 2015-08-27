@@ -9,7 +9,7 @@ if node['mongodb']['cluster_name'] == 'production_cluster_2' then
    region = node[:ec2][:region]
    token = node[:mongodb][:token][region]
    if !node[:mongodb][:purge_window][region].nil?
-      when = node[:mongodb][:purge_window][region]
+      when_to_run = node[:mongodb][:purge_window][region]
    end
 
    template "/etc/init/oldboy.conf" do
@@ -18,7 +18,7 @@ if node['mongodb']['cluster_name'] == 'production_cluster_2' then
      group "root"
      source "purge.conf.erb"
      variables(
-	:when_to_run => when,
+	:when_to_run => when_to_run,
 	:token => token
      )
    end
