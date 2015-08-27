@@ -16,7 +16,7 @@ if node['mongodb']['cluster_name'] == 'production_cluster_2' then
      mode "0644"
      owner "root"
      group "root"
-     source "purge.conf.erb"
+     source "purge.upstart.erb"
      variables(
 	:when_to_run => when_to_run,
 	:token => token
