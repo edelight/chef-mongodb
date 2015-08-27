@@ -1,5 +1,5 @@
 
-include_recipe python
+include_recipe "python"
 
 if node['mongodb']['cluster_name'] == 'production_cluster_2' then
 
