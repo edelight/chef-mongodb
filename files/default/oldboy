@@ -13,6 +13,7 @@ from pymongo.errors import PyMongoError
 from bson.objectid import ObjectId
 import logging
 from logging.handlers import SysLogHandler
+from splunk_handler import SplunkHandler
 from time import sleep
 import arrow
 import re
@@ -92,6 +93,53 @@ class Purge(dict):
       if self.throttle < 10:
 	 self.throttle = 10
 
+      try:
+	 splunk_handler = SplunkHandler(
+	    host=self.splunkHost,
+	    port=self.splunkPort,
+	    username='datacloud_purge',
+	    password='Purge4Tealium',
+	    index='datacloud_purge',
+	    hostname=self.whoami(),
+	    verify=False
+	 )
+
+	 self.splunk = logging.getLogger('splunk')
+	 self.splunk.setLevel(logging.INFO)
+	 self.splunk.addHandler(splunk_handler)
+
+      except Exception as e:
+	 logging.warning("Failed to configure splunk handler: %s" % e)
+	 logging.warning("splunk logging defaulting to root logger")
+	 self.splunk = logging.getLogger('root')
+	 pass
+
+
+   def whoami(self):
+      from socket import gethostbyname
+      from socket import getfqdn
+      try:
+	 fqdn = getfqdn()
+      except Exception as e:
+	 logging.warning("can't get my FQDN: %s" % e)
+      try:
+	 ip = ""
+	 if fqdn:
+	    ip = gethostbyname(fqdn)
+      except Exception as e:
+	 logging.warning("can't get my IP: %s" % e)
+      if fqdn and ip:
+	 whoami = "%s (%s)" % (fqdn, ip)
+      elif fqdn:
+	 whoami = fqdn
+      elif ip:
+	 whoami = ip
+      else:
+	 whoami = None
+	 logging.warning("I don't know who I am!")
+      return whoami
+
+
    def time_to_run(self):
 
       if not self.timeRange:
@@ -122,6 +170,11 @@ class Purge(dict):
 	    logging.info("purged %d profiles (%.02f/s) and %d visits (%.02f/s)"
 		         % (self.profileStats.total(), self.profileStats.ratePerSec(),
 			    self.visitStats.total(), self.visitStats.ratePerSec()))
+
+	    self.splunk.info("purged_visitor_profiles=%d, purged_visitor_profiles_per_sec=%.02f, "
+		             "purged_visitor_visits=%d, purged_visitor_visits_per_sec=%.02f"
+			     % (self.profileStats.total(), self.profileStats.ratePerSec(),
+				self.visitStats.total(), self.visitStats.ratePerSec()))
 
 	 sleep(self.throttle)
 
@@ -205,6 +258,15 @@ def parse_args():
 		      type=positive_integer,
 		      help='Maximum datacloud partition number. (default: 99)',
 		      default=99)
+
+   gargle.add_argument('--splunkHost', dest='splunkHost', metavar="<host>",
+		      help='Splunk indexer host. (default: 10.221.1.17)',
+		      default='10.221.1.17')
+
+   gargle.add_argument('--splunkPort', dest='splunkPort', metavar="<port>",
+		      type=positive_integer,
+		      help='Splunk indexer port. (default: 8089)',
+		      default=8089)
 
    gargle.add_argument('--verbose', action='store_true',
 		      help='log to stderr in addition to syslog (default: False)')

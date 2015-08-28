@@ -5,6 +5,7 @@ if node['mongodb']['cluster_name'] == 'production_cluster_2' then
 
    python_pip 'arrow'
    python_pip 'python-daemon'
+   python_pip 'splunk_handler'
 
    region = node[:ec2][:region]
    token = node[:mongodb][:token][region]
