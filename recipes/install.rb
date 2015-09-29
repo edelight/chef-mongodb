@@ -55,7 +55,7 @@ template init_file do
   )
   action :create_if_missing
 
-  if(platform_family?('rhel') && node['platform_version'].to_i >= 7)
+  if(!platform?('amazon') && platform_family?('rhel') && node['platform_version'].to_i >= 7)
     notifies :run, 'execute[mongodb-systemctl-daemon-reload]', :immediately
   end
 end
