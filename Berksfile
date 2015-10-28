@@ -1,4 +1,4 @@
-source "http://api.berkshelf.com"
+source 'https://supermarket.chef.io'
 
 metadata
 
