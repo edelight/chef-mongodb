@@ -36,9 +36,9 @@ when 'debian'
   end
 
 when 'rhel', 'fedora'
-  yum_repository 'mongodb' do
+  yum_repository 'mongodb-org-3.0' do
     description 'mongodb RPM Repository'
-    baseurl "http://downloads-distro.mongodb.org/repo/redhat/os/#{node['kernel']['machine']  =~ /x86_64/ ? 'x86_64' : 'i686'}"
+    baseurl "https://repo.mongodb.org/yum/redhat/#{node['platform_version'].split('.')[0]}/mongodb-org/3.0/x86_64/"
     action :create
     gpgcheck false
     enabled true
