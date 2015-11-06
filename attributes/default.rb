@@ -55,6 +55,8 @@ else
   default[:mongodb][:dbconfig_file_template] = 'mongodb.conf.erb'
 end
 
+default[:mongodb][:dbconfig_file] = '/etc/mongodb.conf'
+
 default[:mongodb][:package_name] = 'mongodb'
 default[:mongodb][:package_version] = nil
 
