@@ -52,7 +52,7 @@ template init_file do
     :ulimit =>         node['mongodb']['ulimit'],
     :bind_ip =>        node['mongodb']['config']['bind_ip'],
     :port =>           node['mongodb']['config']['port'],
-    :package_main_version => node['mongodb']['package_main_version']
+    :package_main_version => 'test'
   )
   action :create_if_missing
 
