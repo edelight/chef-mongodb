@@ -47,6 +47,9 @@ default[:mongodb][:init_script_template] = 'debian-mongodb.init.erb'
 default[:mongodb][:sysconfig_file] = '/etc/default/mongodb'
 default[:mongodb][:sysconfig_file_template] = 'mongodb.sysconfig.erb'
 
+# インストールするバージョン
+default[:mongodb][:package_version] = node['mongodb']['package_version'][0]
+
 # v2 と v3 で異なるテンプレートを使用
 case node['mongodb']['package_version'][0]
 when '3'
