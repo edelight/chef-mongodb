@@ -73,12 +73,6 @@ else
   packager_opts = ''
 end
 
-if node['mongodb']['package_version'][0] == '3'
-  execute 'add_source_list' do
-    command "echo deb 'http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse' | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list"
-  end
-end
-
 # install
 package node[:mongodb][:package_name] do
   options packager_opts
