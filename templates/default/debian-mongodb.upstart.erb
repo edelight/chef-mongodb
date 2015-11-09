@@ -22,10 +22,13 @@ script
   if [ "x$ENABLE_MONGOD" = "xyes" ]; then
   exec start-stop-daemon --start --quiet --chuid $DAEMON_USER --exec $DAEMON -- $DAEMON_OPTS
   fi
+  nanyakanya=<%= @package_version %>
+<%- if true %>
   if [ -f /sys/kernel/mm/transparent_hugepage/enabled ]; then
     echo never > /sys/kernel/mm/transparent_hugepage/enabled
   fi
   if [ -f /sys/kernel/mm/transparent_hugepage/defrag ]; then
     echo never > /sys/kernel/mm/transparent_hugepage/defrag
   fi
+<% end %>
 end script
