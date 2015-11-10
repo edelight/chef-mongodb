@@ -89,6 +89,9 @@ define :mongodb_instance,
   new_resource.ulimit                     = node['mongodb']['ulimit']
   new_resource.reload_action              = node['mongodb']['reload_action']
   new_resource.package_version            = node['mongodb']['package_version']
+  new_resource.disable_transparent_hugepage       = node['mongodb']['disable_transparent_hugepage'] || false
+  new_resource.disable_transparent_hugepages_file = node['mongodb']['disable_transparent_hugepages_file']
+  new_resource.disable_transparent_hugepages_script = node['mongodb']['disable_transparent_hugepages_script']
 
   if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
     new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
@@ -256,5 +259,22 @@ define :mongodb_instance,
       end
       action :nothing
     end
+  end
+
+  if new_resource.transparent_hugepage
+
+    execute 'update-rc.d_disable-transparent-hugepages' do
+      command 'update-rc.d disable-transparent-hugepages defaults'
+      action :nothing
+    end
+
+    template new_resource.disable_transparent_hugepages_file do
+      source new_resource.disable_transparent_hugepages_script
+      owner 'root'
+      group 'root'
+      mode  '0755'
+      notifies :run, 'execute[update-rc.d_disable-transparent-hugepages]', :immediately
+    end
+
   end
 end
