@@ -3,7 +3,7 @@
 #
 
 storage:
-  dbPath: <%= node['mongodb']['config']['strorage']['dbpath'] %>
+  dbPath: <%= node['mongodb']['config']['dbpath'] %>
   journal:
     enabled: <%= node['mongodb']['config']['journal']['enabled'] %>
   engine: <%= node['mongodb']['config']['journal']['engine'] %>
