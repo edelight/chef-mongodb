@@ -261,7 +261,7 @@ define :mongodb_instance,
     end
   end
 
-  if new_resource.transparent_hugepage
+  if new_resource.disable_transparent_hugepage
 
     execute 'update-rc.d_disable-transparent-hugepages' do
       command 'update-rc.d disable-transparent-hugepages defaults'
