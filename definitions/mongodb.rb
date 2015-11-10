@@ -88,7 +88,7 @@ define :mongodb_instance,
   new_resource.template_cookbook          = node['mongodb']['template_cookbook']
   new_resource.ulimit                     = node['mongodb']['ulimit']
   new_resource.reload_action              = node['mongodb']['reload_action']
-  new_resource.package_main_version              = node['mongodb']['package_main_version']
+  new_resource.package_version            = node['mongodb']['package_version']
 
   if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
     new_resource.init_file = File.join(node['mongodb']['init_dir'], "#{new_resource.name}.conf")
@@ -191,7 +191,7 @@ define :mongodb_instance,
       :ulimit =>         new_resource.ulimit,
       :bind_ip =>        new_resource.bind_ip,
       :port =>           new_resource.port,
-      :package_main_version => new_resource.package_main_version
+      :package_main_version => new_resource.package_version[0]
     )
     notifies new_resource.reload_action, "service[#{new_resource.name}]"
 
