@@ -36,7 +36,7 @@ default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb'][
 
 # for v3 config
 default['mongodb']['config']['storage']['journal']['enabled'] = true
-default['mongodb']['config']['engine'] = nil
+default['mongodb']['config']['storage']['engine'] = nil
 default['mongodb']['config']['processManagement']['fork'] = true
 default['mongodb']['config']['systemLog']['destination'] = 'file'
 default['mongodb']['config']['systemLog']['logAppend'] = true
