@@ -5,8 +5,10 @@
 storage:
   dbPath: <%= node['mongodb']['config']['dbpath'] %>
   journal:
-    enabled: <%= node['mongodb']['config']['journal']['enabled'] %>
-  engine: <%= node['mongodb']['config']['journal']['engine'] %>
+    enabled: <%= node['mongodb']['config']['storage']['journal']['enabled'] %>
+<% if node['mongodb']['config']['engine'] %>
+  engine: <%= node['mongodb']['config']['engine'] %>
+<% end %>
 processManagement:
   fork: <%= node['mongodb']['config']['processManagement']['fork'] %>
 systemLog:
