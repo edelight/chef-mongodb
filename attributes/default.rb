@@ -55,7 +55,7 @@ else
   default[:mongodb][:dbconfig_file_template] = 'mongodb.conf.erb'
 end
 
-default[:mongodb][:disable_transparent_hugepages_script] = 'v3/disable-transparent-hugepages.erb'
+default[:mongodb][:disable_transparent_hugepages_template] = 'v3/disable-transparent-hugepages.erb'
 
 default[:mongodb][:disable_transparent_hugepages_file] = '/etc/init.d/disable-transparent-hugepages'
 
