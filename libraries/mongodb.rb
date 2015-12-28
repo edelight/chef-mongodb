@@ -156,7 +156,7 @@ class Chef::ResourceDefinitionList::MongoDB
         Chef::Log.error("configuring replicaset returned: #{result.inspect}") unless result.fetch('errmsg', nil).nil?
       else
         # remove removed members from the replicaset and add the new ones
-        max_id = config['members'].map { |member| member['_id'] }.max
+        old_ids = config['members'].map { |member| member['_id'] }
         rs_members.map! { |member| member['host'] }
         config['version'] += 1
         old_members = config['members'].map { |member| member['host'] }
@@ -166,10 +166,11 @@ class Chef::ResourceDefinitionList::MongoDB
           host = m['host']
           { '_id' => m['_id'], 'host' => host }.merge(rs_options[host])
         end
+        ids = (0...256).to_a - old_ids
         members_add = rs_members - old_members
         members_add.each do |m|
-          max_id += 1
-          config['members'] << { '_id' => max_id, 'host' => m }.merge(rs_options[m])
+          new_id = ids.shift
+          config['members'] << { '_id' => new_id, 'host' => m }.merge(rs_options[m])
         end
 
         rs_connection = nil
