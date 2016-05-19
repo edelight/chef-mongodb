@@ -5,7 +5,7 @@ Last-Update: Tue Nov  4 11:48:54 PST 2014
 
 Pending 0.16.3 Changes
 --------------------------
-* systemctl will specifically for platform = centos and platform_version >=7
+* systemctl will specifically for platform = centos and platform_version >=7 
 
 Pending 0.16.3 Changes
 --------------------------
