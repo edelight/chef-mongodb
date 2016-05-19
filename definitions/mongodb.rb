@@ -57,7 +57,8 @@ define :mongodb_instance,
   new_resource.name                       = params[:name]
   new_resource.dbpath                     = params[:dbpath]
   new_resource.logpath                    = params[:logpath]
-  new_resource.replicaset                 = params[:replicaset]
+  #new_resource.replicaset                 = params[:replicaset]
+  new_resource.replicaset                 = run_context.node
   new_resource.service_action             = params[:action]
   new_resource.service_notifies           = params[:notifies]
 

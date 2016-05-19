@@ -31,8 +31,30 @@ def add_user(username, password, roles = [], database)
 
   # Create the user if they don't exist
   # Update the user if they already exist
-  db.add_user(username, password, false, :roles => roles)
-  Chef::Log.info("Created or updated user #{username} on #{database}")
+
+  begin
+    db.add_user(username, password, false, :roles => roles)
+    Chef::Log.info("Created or updated user #{username} on #{database}")
+  rescue Mongo::ConnectionFailure => e
+    if @new_resource.connection['is_replicaset']
+        begin
+          # Get replicaset status back from the node
+          cmd = BSON::OrderedHash.new
+          cmd['replSetGetStatus'] = 1
+          result = admin.command(cmd)
+          if result['myState'] == 1
+            # This node is primary, try to add the user
+            db.add_user(username, password, false, :roles => roles)
+            Chef::Log.info("Created or updated user #{username} on #{database} of primary replicaset node")
+            elsif result['myState'] == 2
+            # This node is secondary, skip user management
+            Chef::Log.info('Current node appears to be a secondary node in replicaset, not adding user')
+          end
+        end
+    else
+      Chef::Log.fatal("Unable to add user: #{e}")
+    end
+  end
 end
 
 # Drop a user from the database specified
