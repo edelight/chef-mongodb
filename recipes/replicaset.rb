@@ -29,7 +29,7 @@ unless node['mongodb']['is_shard']
     port         node['mongodb']['config']['port']
     logpath      node['mongodb']['config']['logpath']
     dbpath       node['mongodb']['config']['dbpath']
-    replicaset   node
+    replicaset   node['mongodb']['config']['replset']
     enable_rest  node['mongodb']['config']['rest']
     smallfiles   node['mongodb']['config']['smallfiles']
   end
