@@ -27,6 +27,7 @@ include_recipe 'mongodb::install'
 include_recipe 'mongodb::mongo_gem'
 
 service node[:mongodb][:default_init_name] do
+  provider Chef::Provider::Service::Upstart if node['mongodb']['apt_repo'] == 'ubuntu-upstart'
   action [:disable, :stop]
 end
 

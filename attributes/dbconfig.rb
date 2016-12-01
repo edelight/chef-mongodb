@@ -33,3 +33,14 @@ default['mongodb']['config']['oplogSize'] = nil
 
 default['mongodb']['config']['replSet'] = nil
 default['mongodb']['config']['keyFile'] = '/etc/mongodb.key' if node['mongodb']['key_file_content']
+
+# for v3 config
+default['mongodb']['config']['storage']['journal']['enabled'] = true
+default['mongodb']['config']['storage']['engine'] = nil
+default['mongodb']['config']['processManagement']['fork'] = true
+default['mongodb']['config']['systemLog']['destination'] = 'file'
+default['mongodb']['config']['systemLog']['logAppend'] = true
+default['mongodb']['config']['systemLog']['path'] = '/var/log/mongodb/mongodb.log'
+default['mongodb']['config']['replication']['replSetName'] = nil
+default['mongodb']['config']['net']['port'] = '27017'
+default['mongodb']['config']['net']['bindIp'] = '127.0.0.1'
