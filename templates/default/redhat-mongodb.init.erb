@@ -11,7 +11,7 @@
 
 NAME=<%= @provides %>
 SYSCONFIG=<%= @sysconfig_file %>
-DAEMON_USER=mongod
+DAEMON_USER=<%= @user %>
 ENABLE_MONGODB=yes
 
 SUBSYS_LOCK_FILE=/var/lock/subsys/<%= @provides %>

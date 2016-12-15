@@ -189,7 +189,8 @@ define :mongodb_instance,
       :sysconfig_file => new_resource.sysconfig_file,
       :ulimit =>         new_resource.ulimit,
       :bind_ip =>        new_resource.bind_ip,
-      :port =>           new_resource.port
+      :port =>           new_resource.port,
+      :user =>           new_resource.mongodb_user
     )
     notifies new_resource.reload_action, "service[#{new_resource.name}]"
 
