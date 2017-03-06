@@ -1,3 +1,7 @@
+# ** Important **
+
+This project is not maintained anymore. See https://github.com/sous-chefs/mongodb for the active fork. 
+
 # MongoDB Cookbook
 
 Installs and configures MongoDB, supporting:
